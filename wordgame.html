@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>중1 영단어 게임</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pink:#FF6FA5;
+    --yellow:#FFC93C;
+    --green:#3DDC97;
+    --blue:#4EA8DE;
+    --purple:#9B5DE5;
+    --orange:#FF9142;
+    --cream:#FFF7E6;
+    --ink:#3A2E4D;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Gaegu','Jua',sans-serif;
+    background:linear-gradient(160deg,#FFF7E6 0%,#FFEAF3 40%,#E8F6FF 100%);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  .app{max-width:680px;margin:0 auto;padding:16px 16px 60px;}
+  h1{
+    font-family:'Jua',sans-serif;
+    text-align:center;
+    font-size:32px;
+    margin:10px 0 16px;
+    color:var(--purple);
+    text-shadow:2px 2px 0 #fff, 3px 3px 0 rgba(155,93,229,0.25);
+  }
+  .nav{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    margin-bottom:18px;
+  }
+  .nav button{
+    font-family:'Jua',sans-serif;
+    font-size:22px;
+    padding:12px 24px;
+    border:none;
+    border-radius:20px;
+    cursor:pointer;
+    background:#fff;
+    color:var(--purple);
+    box-shadow:0 4px 0 #d8c4f5;
+    transition:transform .1s;
+  }
+  .nav button.active{
+    background:var(--purple);
+    color:#fff;
+    box-shadow:0 4px 0 #6b3aa8;
+  }
+  .nav button:active{transform:translateY(3px);box-shadow:none;}
+
+  .panel{
+    background:#fff;
+    border-radius:28px;
+    padding:22px;
+    box-shadow:0 8px 0 rgba(0,0,0,0.06);
+  }
+
+  /* unit selector */
+  .unitbox{
+    background:var(--cream);
+    border-radius:18px;
+    padding:14px 14px 10px;
+    margin-bottom:16px;
+  }
+  .unitbox-title{
+    font-family:'Jua',sans-serif;
+    font-size:18px;
+    color:var(--purple);
+    margin-bottom:8px;
+  }
+  .unitpills{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .pill{
+    font-family:'Gaegu',sans-serif;
+    font-weight:700;
+    font-size:16px;
+    padding:8px 14px;
+    border-radius:16px;
+    border:2px solid #ddd;
+    background:#fff;
+    color:#999;
+    cursor:pointer;
+  }
+  .pill.on{
+    background:var(--purple);
+    color:#fff;
+    border-color:var(--purple);
+  }
+  .pill.all{
+    font-family:'Jua',sans-serif;
+  }
+  .pill.all.on{
+    background:var(--orange);
+    border-color:var(--orange);
+  }
+
+  /* status bar */
+  .status{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:16px;
+    font-size:22px;
+    font-family:'Jua',sans-serif;
+  }
+  .coinbox, .couponbox{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:var(--yellow);
+    padding:8px 16px;
+    border-radius:18px;
+    color:#5a3d00;
+  }
+  .couponbox{background:var(--green); color:#08421f;}
+  .dots{display:flex; gap:4px;}
+  .dot{width:14px;height:14px;border-radius:50%;background:#eee;border:2px solid #d9b400;}
+  .dot.filled{background:#d9b400;}
+
+  .cardgrid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:8px;
+    margin:14px 0 20px;
+  }
+  .cardslot{
+    aspect-ratio:1/1;
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:26px;
+    background:#f2f2f2;
+    border:3px dashed #ccc;
+  }
+  .cardslot.got{
+    background:linear-gradient(135deg,var(--pink),var(--orange));
+    border:3px solid #fff;
+    box-shadow:0 3px 0 rgba(0,0,0,0.15);
+  }
+
+  .redeem{
+    display:block;
+    width:100%;
+    font-family:'Jua',sans-serif;
+    font-size:22px;
+    padding:14px;
+    border:none;
+    border-radius:18px;
+    background:var(--orange);
+    color:#fff;
+    margin-bottom:18px;
+    cursor:pointer;
+    box-shadow:0 5px 0 #c9660f;
+  }
+  .redeem:active{transform:translateY(4px);box-shadow:none;}
+
+  .question{
+    font-size:26px;
+    text-align:center;
+    background:var(--cream);
+    border-radius:20px;
+    padding:22px 18px;
+    margin-bottom:20px;
+    line-height:1.7;
+    min-height:110px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+  }
+  .qline{font-size:24px;}
+  .qword{color:var(--blue); font-family:'Jua',sans-serif; font-size:38px; margin-top:10px;}
+  .blank{color:var(--pink); font-weight:900;}
+
+  .options{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  .opt{
+    font-family:'Gaegu',sans-serif;
+    font-weight:700;
+    font-size:22px;
+    padding:20px 10px;
+    border:none;
+    border-radius:20px;
+    cursor:pointer;
+    color:#fff;
+    box-shadow:0 5px 0 rgba(0,0,0,0.15);
+  }
+  .opt:nth-child(1){background:var(--pink);}
+  .opt:nth-child(2){background:var(--blue);}
+  .opt:nth-child(3){background:var(--green);}
+  .opt:nth-child(4){background:var(--purple);}
+  .opt:active{transform:translateY(4px);box-shadow:none;}
+  .opt:disabled{opacity:0.55; cursor:default;}
+  .opt.correct{outline:5px solid #2ecc71;}
+  .opt.wrong{outline:5px solid #e74c3c;}
+
+  .feedback{
+    text-align:center;
+    font-size:24px;
+    font-family:'Jua',sans-serif;
+    margin:16px 0;
+    min-height:34px;
+  }
+  .feedback.good{color:#2e9e5b;}
+  .feedback.bad{color:#e0555a;}
+
+  .nextbtn{
+    display:block;
+    margin:0 auto;
+    font-family:'Jua',sans-serif;
+    font-size:22px;
+    padding:12px 30px;
+    border:none;
+    border-radius:18px;
+    background:var(--blue);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 5px 0 #2f7fb0;
+  }
+  .nextbtn:active{transform:translateY(4px); box-shadow:none;}
+
+  .noword{
+    text-align:center;
+    font-size:22px;
+    color:#e0555a;
+    padding:30px 10px;
+    font-family:'Jua',sans-serif;
+  }
+
+  /* wordbook */
+  .wb-title{
+    font-family:'Jua',sans-serif;
+    font-size:26px;
+    color:var(--pink);
+    text-align:center;
+    margin-bottom:16px;
+  }
+  .wb-list{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px;}
+  .wb-item{
+    background:var(--cream);
+    border-radius:16px;
+    padding:14px 18px;
+    font-size:22px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .wb-word{font-family:'Jua',sans-serif; color:var(--purple);}
+  .wb-meaning{color:var(--ink);}
+  .wb-empty{
+    text-align:center;
+    font-size:22px;
+    color:#999;
+    padding:40px 10px;
+  }
+
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(60,30,90,0.55);
+    display:flex; align-items:center; justify-content:center;
+    z-index:50;
+  }
+  .cardpop{
+    background:#fff;
+    border-radius:28px;
+    padding:36px 30px;
+    text-align:center;
+    width:80%;
+    max-width:320px;
+    box-shadow:0 10px 0 rgba(0,0,0,0.2);
+  }
+  .cardpop .emoji{font-size:70px;}
+  .cardpop h2{font-family:'Jua',sans-serif; color:var(--purple); font-size:26px; margin:10px 0;}
+  .cardpop p{font-size:20px; margin:0 0 18px;}
+  .cardpop button{
+    font-family:'Jua',sans-serif;
+    font-size:20px;
+    padding:10px 28px;
+    border:none;
+    border-radius:16px;
+    background:var(--pink);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 4px 0 #c94d7e;
+  }
+  .loading{text-align:center; font-size:22px; padding:60px 0; color:#999;}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🌈 중1 영단어 게임 🌈</h1>
+  <div class="nav">
+    <button id="navGame" class="active">🎮 게임</button>
+    <button id="navBook">📒 내 단어장</button>
+  </div>
+
+  <div id="root">
+    <div class="loading">불러오는 중... ⏳</div>
+  </div>
+</div>
+
+<script>
+// ---------------- 단원별 단어 데이터 ----------------
+const UNITS = [
+  {
+    id:1, title:"Unit 1. Are You Ready?",
+    words:[
+      {w:"welcome", m:"환영하다", s:"___ to our class!"},
+      {w:"nervous", m:"긴장한", s:"I feel very ___ today."},
+      {w:"survival", m:"생존", s:"This is a ___ kit for school."},
+      {w:"kit", m:"세트, 꾸러미", s:"I have a school survival ___."},
+      {w:"sticky note", m:"접착 메모지", s:"I write names on a ___."},
+      {w:"remember", m:"기억하다", s:"I will ___ your name."},
+      {w:"candy", m:"사탕", s:"The ___ is very sweet."},
+      {w:"smile", m:"미소", s:"She has a big ___."},
+      {w:"mirror", m:"거울", s:"Look in the ___."},
+      {w:"stress", m:"스트레스", s:"I feel a lot of ___."},
+      {w:"tightly", m:"꽉", s:"He held the ball ___."},
+      {w:"go away", m:"사라지다", s:"My stress will ___ soon."},
+      {w:"erase", m:"지우다", s:"I can ___ my mistake."},
+      {w:"mistake", m:"실수", s:"Everyone makes a ___."},
+      {w:"start over", m:"다시 시작하다", s:"I will ___ again."},
+      {w:"feeling", m:"감정", s:"My ___ gets hurt sometimes."},
+      {w:"hurt", m:"다치다, 상처를 주다", s:"My feelings get ___ sometimes."},
+      {w:"Band-Aid", m:"반창고", s:"I need a ___."},
+      {w:"own", m:"자신의", s:"Make your ___ survival kit."},
+    ]
+  },
+  {
+    id:2, title:"Unit 2. My Happy Life",
+    words:[
+      {w:"alarm clock", m:"자명종", s:"The ___ rings every morning."},
+      {w:"go off", m:"울리다", s:"The alarm clock will ___ soon."},
+      {w:"check", m:"확인하다", s:"I ___ the weather every day."},
+      {w:"weather", m:"날씨", s:"How is the ___ today?"},
+      {w:"raining", m:"비가 오는", s:"It is ___ outside."},
+      {w:"backpack", m:"배낭", s:"My ___ is heavy."},
+      {w:"umbrella", m:"우산", s:"Take your ___ with you."},
+      {w:"heavy", m:"무거운", s:"This bag is too ___."},
+      {w:"smartphone", m:"스마트폰", s:"He uses his ___ every day."},
+      {w:"wake up", m:"일어나다", s:"I ___ at seven every day."},
+      {w:"get ready", m:"준비하다", s:"I ___ for school in the morning."},
+      {w:"simply", m:"간단히", s:"He ___ picks up his tablet."},
+      {w:"tablet", m:"태블릿", s:"She reads on her ___."},
+      {w:"coin", m:"동전", s:"I have some ___s in my pocket."},
+      {w:"pocket", m:"주머니", s:"I keep my money in my ___."},
+      {w:"empty", m:"빈", s:"There is an ___ seat on the bus."},
+      {w:"comic book", m:"만화책", s:"He reads a ___ on the bus."},
+      {w:"favorite", m:"가장 좋아하는", s:"This is my ___ song."},
+      {w:"webtoon", m:"웹툰", s:"She reads a ___ on her phone."},
+      {w:"record", m:"녹음하다", s:"He likes to ___ songs."},
+      {w:"tape", m:"카세트테이프", s:"He records songs on a ___."},
+      {w:"request", m:"신청하다", s:"I will ___ a song for the DJ."},
+      {w:"share", m:"공유하다", s:"He will ___ the song online."},
+      {w:"social media", m:"SNS", s:"She posts pictures on ___."},
+      {w:"around the world", m:"전 세계에", s:"He gets likes from people ___."},
+      {w:"bedtime", m:"취침시간", s:"He checks his phone before ___."},
+      {w:"look out", m:"내다보다", s:"He will ___ the window to check the weather."},
+      {w:"take out", m:"꺼내다", s:"He will ___ his umbrella."},
+      {w:"get on", m:"탑승하다", s:"He will ___ the bus."},
+    ]
+  },
+  {
+    id:3, title:"Unit 3. Be Open to Differences",
+    words:[
+      {w:"field", m:"운동장", s:"The team practices on the ___."},
+      {w:"practice", m:"연습", s:"We have soccer ___ today."},
+      {w:"exciting", m:"신나는", s:"I have some ___ news!"},
+      {w:"member", m:"구성원", s:"She is a new ___ of the team."},
+      {w:"welcome", m:"환영하다", s:"Let's ___ our new friend."},
+      {w:"believe", m:"믿다", s:"I can't ___ it!"},
+      {w:"nervous", m:"긴장한", s:"The dogs looked ___."},
+      {w:"fetch", m:"물어오다", s:"Can she play ___?"},
+      {w:"teach", m:"가르치다", s:"We can ___ her new things."},
+      {w:"softly", m:"부드럽게", s:"He said it ___."},
+      {w:"join", m:"참여하다", s:"You can ___ the game anytime."},
+      {w:"begin", m:"시작하다", s:"The game will ___ now."},
+      {w:"silently", m:"조용히", s:"She watched ___."},
+      {w:"fence", m:"울타리", s:"The ball went over the ___."},
+      {w:"bump into", m:"부딪히다", s:"They ___ each other."},
+      {w:"fall down", m:"넘어지다", s:"They ran and ___."},
+      {w:"jump", m:"뛰어오르다", s:"Cathy will ___ into the air."},
+      {w:"quickly", m:"빨리", s:"She passed the ball ___."},
+      {w:"surprised", m:"놀란", s:"The dogs were ___."},
+      {w:"glad", m:"기쁜", s:"I'm so ___ to have her here."},
+      {w:"call out", m:"큰 소리로 부르다", s:"Coach will ___ to the new member."},
+    ]
+  },
+  {
+    id:4, title:"Unit 4. Let's Travel Together!",
+    words:[
+      {w:"birthday", m:"생일", s:"Today is my grandma's ___."},
+      {w:"visit", m:"방문하다", s:"We will ___ Grandma today."},
+      {w:"usually", m:"보통", s:"Dad ___ makes our plans."},
+      {w:"plan", m:"계획", s:"I will make a ___ this time."},
+      {w:"ticket", m:"표", s:"I need to buy a bus ___."},
+      {w:"famous", m:"유명한", s:"It is a ___ bakery."},
+      {w:"bakery", m:"빵집", s:"I will buy a cake at the ___."},
+      {w:"seafood", m:"해산물", s:"We will eat at a ___ restaurant."},
+      {w:"restaurant", m:"식당", s:"We ate at a nice ___."},
+      {w:"studio", m:"사진관", s:"We took pictures at the ___."},
+      {w:"excited", m:"신이 난", s:"I'm so ___ about the trip!"},
+      {w:"miss", m:"놓치다", s:"We woke up late and will ___ the bus."},
+      {w:"train", m:"기차", s:"We took the ___ instead."},
+      {w:"in time", m:"제시간에", s:"We got there ___."},
+      {w:"instead", m:"대신에", s:"We took the train ___."},
+      {w:"success", m:"성공", s:"The party was a big ___."},
+      {w:"uniform", m:"교복", s:"We wore a school ___ for fun."},
+      {w:"upset", m:"속상한", s:"I was not ___ about the change."},
+      {w:"work out", m:"잘 풀리다", s:"My plan did not ___ perfectly."},
+      {w:"lastly", m:"마지막으로", s:"___, we went to the studio."},
+    ]
+  },
+  {
+    id:5, title:"Unit 5. Think Green, Live Green",
+    words:[
+      {w:"challenge", m:"도전", s:"I tried the zero-waste ___."},
+      {w:"trash", m:"쓰레기", s:"Don't make so much ___."},
+      {w:"advice", m:"조언", s:"She gave me some good ___."},
+      {w:"important", m:"중요한", s:"Knowing your trash is very ___."},
+      {w:"garbage", m:"쓰레기", s:"I went through my ___."},
+      {w:"wasteful", m:"낭비하는", s:"I should not be so ___."},
+      {w:"straw", m:"빨대", s:"I said no to a ___."},
+      {w:"secondhand", m:"중고의", s:"I sold my ___ clothes."},
+      {w:"clean", m:"청소하다", s:"I will ___ my room."},
+      {w:"list", m:"등록하다", s:"I will ___ my T-shirts on the app."},
+      {w:"surprise", m:"놀라움", s:"To my ___, one person bought it."},
+      {w:"racket", m:"라켓", s:"I bought a used badminton ___."},
+      {w:"empty", m:"빈", s:"I took the ___ bottle to the shop."},
+      {w:"fill", m:"채우다", s:"I will ___ my bottle with shampoo."},
+      {w:"shampoo", m:"샴푸", s:"I filled my bottle with ___."},
+      {w:"cut down on", m:"줄이다", s:"This way, I ___ plastic."},
+      {w:"plastic", m:"플라스틱", s:"I want to use less ___."},
+      {w:"environment", m:"환경", s:"This is good for the ___."},
+      {w:"friendship", m:"우정", s:"This challenge was great for our ___."},
+      {w:"Earth", m:"지구", s:"We helped the ___ together."},
+    ]
+  },
+  {
+    id:6, title:"Unit 6. Our Future Me",
+    words:[
+      {w:"presentation", m:"발표", s:"I have a ___ tomorrow."},
+      {w:"grow up", m:"자라다", s:"What do you want to be when you ___?"},
+      {w:"dream job", m:"꿈의 직업", s:"What is your ___?"},
+      {w:"astronaut", m:"우주비행사", s:"Dad wanted to be an ___."},
+      {w:"robot designer", m:"로봇 디자이너", s:"My sister wants to be a ___."},
+      {w:"superhero", m:"슈퍼히어로", s:"My little sister wants to be a ___."},
+      {w:"stressed out", m:"스트레스를 받은", s:"I was ___ about my future."},
+      {w:"wrong", m:"잘못된", s:"Something is ___ with me."},
+      {w:"future", m:"미래", s:"I have no plan for the ___."},
+      {w:"grown-up", m:"어른", s:"You are already a ___."},
+      {w:"take care of", m:"돌보다", s:"You ___ everyone in our family."},
+      {w:"answer", m:"답", s:"You have the ___ to everything."},
+      {w:"afraid", m:"두려워하는", s:"You're not ___ of anything."},
+      {w:"most of all", m:"무엇보다도", s:"___, you're my mom!"},
+      {w:"smile", m:"미소 짓다", s:"Mom will ___ and say yes."},
+      {w:"caring", m:"배려하는", s:"I want to be a ___ person."},
+      {w:"brave", m:"용감한", s:"I want to be a ___ person too."},
+      {w:"help others", m:"다른 사람을 돕다", s:"I want to ___ every day."},
+      {w:"try", m:"시도하다", s:"I want to ___ new things."},
+    ]
+  },
+  {
+    id:7, title:"Unit 7. You Know What?",
+    words:[
+      {w:"host", m:"진행자", s:"Suji is the ___ of the quiz show."},
+      {w:"finalist", m:"결승 진출자", s:"Namjun is a ___ in the quiz show."},
+      {w:"nervous", m:"긴장한", s:"I'm ___, but I'll do my best."},
+      {w:"winner", m:"우승자", s:"The ___ gets a Fast Pass for lunch."},
+      {w:"receive", m:"받다", s:"The winner will ___ a prize."},
+      {w:"topic", m:"주제", s:"Today's ___ is amazing facts."},
+      {w:"amazing", m:"놀라운", s:"That is an ___ fact!"},
+      {w:"desert", m:"사막", s:"Antarctica is the largest ___."},
+      {w:"Antarctica", m:"남극", s:"___ is very cold and dry."},
+      {w:"Sahara", m:"사하라 사막", s:"The ___ is the largest hot desert."},
+      {w:"sandy", m:"모래가 많은", s:"A desert doesn't have to be ___."},
+      {w:"dry", m:"건조한", s:"A desert is a ___ place."},
+      {w:"mountain", m:"산", s:"Mount Everest is a tall ___."},
+      {w:"above sea level", m:"해발", s:"Mount Everest is the tallest mountain ___."},
+      {w:"below sea level", m:"해수면 아래", s:"Mauna Kea begins ___."},
+      {w:"pyramid", m:"피라미드", s:"Egypt is famous for its ___."},
+      {w:"famous", m:"유명한", s:"Egypt is ___ for its pyramids."},
+      {w:"correct", m:"맞는", s:"You are both ___!"},
+      {w:"congratulations", m:"축하합니다", s:"___, Namjun and Sara!"},
+      {w:"move on", m:"넘어가다", s:"Let's ___ to the next question."},
+    ]
+  },
+];
+
+// 전체 단어를 unit 태그와 함께 펼친 배열
+const ALL_WORDS = [];
+UNITS.forEach(u=>{
+  u.words.forEach(item=>{
+    ALL_WORDS.push({unit:u.id, w:item.w, m:item.m, s:item.s});
+  });
+});
+
+const CARD_EMOJIS = ["🐶","🐱","🐰","🐻","🐼","🦁","🐯","🐸","🐵","🐹"];
+const CARD_NAMES = ["강아지","고양이","토끼","곰","판다","사자","호랑이","개구리","원숭이","햄스터"];
+
+// ---------------- 상태 ----------------
+let state = {
+  coins: 0,
+  cards: [],       // collected card indices (0-9)
+  wishCoupons: 0
+};
+let wordbook = []; // [{w, m}]
+let currentQuestion = null;
+let lastWordKey = null;
+let answered = false;
+let selectedUnits = new Set(UNITS.map(u=>u.id)); // 기본: 전체 선택
+
+const root = document.getElementById('root');
+const navGame = document.getElementById('navGame');
+const navBook = document.getElementById('navBook');
+let currentView = 'game';
+
+// ---------------- 저장/불러오기 ----------------
+async function loadAll(){
+  try{
+    const g = await window.storage.get('game-state', false);
+    if(g && g.value){ state = JSON.parse(g.value); }
+  }catch(e){ /* 없으면 기본값 사용 */ }
+  try{
+    const b = await window.storage.get('wordbook', false);
+    if(b && b.value){ wordbook = JSON.parse(b.value); }
+  }catch(e){ /* 없으면 빈 배열 */ }
+}
+
+async function saveState(){
+  try{ await window.storage.set('game-state', JSON.stringify(state), false); }
+  catch(e){ console.error('상태 저장 실패', e); }
+}
+async function saveWordbook(){
+  try{ await window.storage.set('wordbook', JSON.stringify(wordbook), false); }
+  catch(e){ console.error('단어장 저장 실패', e); }
+}
+
+// ---------------- 문제 생성 ----------------
+function getPool(){
+  return ALL_WORDS.filter(item=>selectedUnits.has(item.unit));
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function pickTarget(pool){
+  let picked;
+  if(pool.length===1){ return pool[0]; }
+  do{
+    picked = pool[Math.floor(Math.random()*pool.length)];
+  }while(picked.w===lastWordKey);
+  return picked;
+}
+
+function makeQuestion(){
+  const pool = getPool();
+  if(pool.length===0) return null;
+
+  const target = pickTarget(pool);
+  lastWordKey = target.w;
+  const type = Math.random()<0.5 ? 'meaning' : 'fill';
+
+  // 오답 보기는 전체 단어에서 뽑아 항상 4개를 채운다
+  const distractPool = shuffle(ALL_WORDS.filter(item=>item.w!==target.w));
+  const others = [];
+  const usedVals = new Set();
+  for(const item of distractPool){
+    const val = type==='meaning' ? item.m : item.w;
+    const targetVal = type==='meaning' ? target.m : target.w;
+    if(val===targetVal || usedVals.has(val)) continue;
+    usedVals.add(val);
+    others.push(val);
+    if(others.length===3) break;
+  }
+
+  if(type==='meaning'){
+    const options = shuffle([target.m, ...others]);
+    return {type, target, prompt:target.w, options, correct: target.m};
+  }else{
+    const options = shuffle([target.w, ...others]);
+    return {type, target, prompt: target.s, options, correct: target.w};
+  }
+}
+
+// ---------------- 렌더링: 단원 선택 ----------------
+function renderUnitSelector(){
+  const allOn = UNITS.every(u=>selectedUnits.has(u.id));
+  const pills = UNITS.map(u=>`
+    <button class="pill ${selectedUnits.has(u.id)?'on':''}" data-unit="${u.id}">${u.title.split('.')[0]}</button>
+  `).join('');
+  return `
+    <div class="unitbox">
+      <div class="unitbox-title">📚 공부할 단원을 골라보세요</div>
+      <div class="unitpills">
+        <button class="pill all ${allOn?'on':''}" data-unit="all">전체</button>
+        ${pills}
+      </div>
+    </div>
+  `;
+}
+
+function bindUnitSelector(){
+  document.querySelectorAll('.pill').forEach(btn=>{
+    btn.onclick = ()=>{
+      const val = btn.dataset.unit;
+      if(val==='all'){
+        const allOn = UNITS.every(u=>selectedUnits.has(u.id));
+        if(allOn){ selectedUnits = new Set(); }
+        else{ selectedUnits = new Set(UNITS.map(u=>u.id)); }
+      }else{
+        const id = Number(val);
+        if(selectedUnits.has(id)) selectedUnits.delete(id);
+        else selectedUnits.add(id);
+      }
+      currentQuestion = null;
+      renderGame();
+    };
+  });
+}
+
+// ---------------- 렌더링: 게임 ----------------
+function renderGame(){
+  const pool = getPool();
+
+  if(pool.length===0){
+    root.innerHTML = `
+      <div class="panel">
+        ${renderUnitSelector()}
+        <div class="noword">공부할 단원을 1개 이상 골라주세요! 🙏</div>
+      </div>
+    `;
+    bindUnitSelector();
+    return;
+  }
+
+  if(!currentQuestion){
+    currentQuestion = makeQuestion();
+    answered = false;
+  }
+  const q = currentQuestion;
+
+  const filledDots = Array.from({length:10}, (_,i)=>`<div class="dot ${i<state.coins?'filled':''}"></div>`).join('');
+  const cardSlots = Array.from({length:10}, (_,i)=>{
+    const got = state.cards.includes(i);
+    return `<div class="cardslot ${got?'got':''}">${got?CARD_EMOJIS[i]:'❓'}</div>`;
+  }).join('');
+
+  let promptHtml;
+  if(q.type==='meaning'){
+    promptHtml = `<div class="qline">이 단어의 뜻은<br>무엇일까요?</div><div class="qword">${q.target.w}</div>`;
+  }else{
+    const parts = q.prompt.split('___');
+    promptHtml = `<div class="qline">빈칸에 알맞은 단어를<br>고르세요</div><div class="qword" style="font-size:24px;">${parts[0]}<span class="blank">____</span>${parts[1]||''}</div>`;
+  }
+
+  const optionsHtml = q.options.map(opt=>{
+    return `<button class="opt" data-val="${encodeURIComponent(opt)}">${opt}</button>`;
+  }).join('');
+
+  const redeemBtn = state.cards.length>=10
+    ? `<button class="redeem" id="redeemBtn">🎁 카드 10장 모두 모았어요! 소원 쿠폰으로 바꾸기</button>`
+    : '';
+
+  root.innerHTML = `
+    <div class="panel">
+      ${renderUnitSelector()}
+      <div class="status">
+        <div class="coinbox">🪙 ${state.coins} / 10 <div class="dots">${filledDots}</div></div>
+        <div class="couponbox">🎟️ 소원 쿠폰 ${state.wishCoupons}개</div>
+      </div>
+      <div class="cardgrid">${cardSlots}</div>
+      ${redeemBtn}
+      <div class="question">${promptHtml}</div>
+      <div class="options">${optionsHtml}</div>
+      <div class="feedback" id="feedback"></div>
+      <div id="nextArea"></div>
+    </div>
+  `;
+
+  bindUnitSelector();
+
+  if(redeemBtn){
+    document.getElementById('redeemBtn').onclick = ()=>{
+      state.cards = [];
+      state.wishCoupons += 1;
+      saveState();
+      renderGame();
+    };
+  }
+
+  document.querySelectorAll('.opt').forEach(btn=>{
+    btn.onclick = ()=>handleAnswer(decodeURIComponent(btn.dataset.val));
+  });
+}
+
+function handleAnswer(chosen){
+  if(answered) return;
+  answered = true;
+  const q = currentQuestion;
+  const correct = chosen === q.correct;
+
+  document.querySelectorAll('.opt').forEach(btn=>{
+    const val = decodeURIComponent(btn.dataset.val);
+    btn.disabled = true;
+    if(val===q.correct) btn.classList.add('correct');
+    else if(val===chosen) btn.classList.add('wrong');
+  });
+
+  const fb = document.getElementById('feedback');
+
+  if(correct){
+    fb.textContent = '정답이에요! 코인 1개 획득! 🪙';
+    fb.className = 'feedback good';
+    state.coins += 1;
+  }else{
+    fb.innerHTML = `아쉬워요! 정답은 <b>${q.correct}</b> 이에요. 단어장에 저장할게요 📒`;
+    fb.className = 'feedback bad';
+    const exists = wordbook.some(item=>item.w===q.target.w);
+    if(!exists){
+      wordbook.push({w:q.target.w, m:q.target.m});
+      saveWordbook();
+    }
+  }
+
+  let cardDrawn = null;
+  if(state.coins>=10){
+    state.coins = 0;
+    const cid = Math.floor(Math.random()*10);
+    const isNew = !state.cards.includes(cid);
+    if(isNew) state.cards.push(cid);
+    cardDrawn = {cid, isNew};
+  }
+  saveState();
+
+  const nextArea = document.getElementById('nextArea');
+  nextArea.innerHTML = `<button class="nextbtn" id="nextBtn" style="margin-top:14px;">다음 문제 ➡️</button>`;
+  document.getElementById('nextBtn').onclick = ()=>{
+    currentQuestion = null;
+    renderGame();
+  };
+
+  if(cardDrawn){
+    showCardPopup(cardDrawn);
+  }
+}
+
+function showCardPopup({cid, isNew}){
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="cardpop">
+      <div class="emoji">${CARD_EMOJIS[cid]}</div>
+      <h2>${isNew ? '새로운 카드 획득!' : '카드를 또 뽑았어요!'}</h2>
+      <p>${CARD_NAMES[cid]} 카드 ${isNew ? '' : '(이미 있는 카드예요)'}</p>
+      <button id="closePopup">좋아요!</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  document.getElementById('closePopup').onclick = ()=>overlay.remove();
+}
+
+// ---------------- 렌더링: 단어장 ----------------
+function renderBook(){
+  let listHtml;
+  if(wordbook.length===0){
+    listHtml = `<div class="wb-empty">아직 틀린 단어가 없어요! 😊<br>게임을 하면 여기에 쌓여요.</div>`;
+  }else{
+    listHtml = `<ul class="wb-list">` + wordbook.map(item=>`
+      <li class="wb-item">
+        <span class="wb-word">${item.w}</span>
+        <span class="wb-meaning">${item.m}</span>
+      </li>
+    `).join('') + `</ul>`;
+  }
+  root.innerHTML = `
+    <div class="panel">
+      <div class="wb-title">📒 내 단어장 (틀린 단어 ${wordbook.length}개)</div>
+      ${listHtml}
+    </div>
+  `;
+}
+
+function render(){
+  if(currentView==='game') renderGame();
+  else renderBook();
+}
+
+navGame.onclick = ()=>{
+  currentView='game';
+  navGame.classList.add('active');
+  navBook.classList.remove('active');
+  render();
+};
+navBook.onclick = ()=>{
+  currentView='book';
+  navBook.classList.add('active');
+  navGame.classList.remove('active');
+  render();
+};
+
+// ---------------- 시작 ----------------
+(async function init(){
+  await loadAll();
+  render();
+})();
+</script>
+</body>
+</html>
