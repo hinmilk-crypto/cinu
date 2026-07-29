@@ -263,9 +263,18 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
+    gap:10px;
+    cursor:pointer;
+    border:none;
+    width:100%;
+    text-align:left;
+    font-family:'Gaegu',sans-serif;
   }
+  .wb-item:active{transform:translateY(2px);}
+  .wb-left{display:flex; align-items:center; gap:8px;}
   .wb-word{font-family:'Jua',sans-serif; color:var(--purple);}
   .wb-meaning{color:var(--ink);}
+  .wb-speaker{font-size:22px;}
   .wb-empty{
     text-align:center;
     font-size:22px;
@@ -791,19 +800,45 @@ function renderBook(){
   if(wordbook.length===0){
     listHtml = `<div class="wb-empty">아직 틀린 단어가 없어요! 😊<br>게임을 하면 여기에 쌓여요.</div>`;
   }else{
-    listHtml = `<ul class="wb-list">` + wordbook.map(item=>`
-      <li class="wb-item">
-        <span class="wb-word">${item.w}</span>
-        <span class="wb-meaning">${item.m}</span>
+    listHtml = `<ul class="wb-list">` + wordbook.map((item,i)=>`
+      <li>
+        <button class="wb-item" data-idx="${i}">
+          <span class="wb-left">
+            <span class="wb-speaker">🔊</span>
+            <span class="wb-word">${item.w}</span>
+          </span>
+          <span class="wb-meaning">${item.m}</span>
+        </button>
       </li>
     `).join('') + `</ul>`;
   }
   root.innerHTML = `
     <div class="panel">
       <div class="wb-title">📒 내 단어장 (틀린 단어 ${wordbook.length}개)</div>
+      <div style="text-align:center; font-size:16px; color:#aaa; margin-bottom:14px;">단어를 누르면 발음을 들을 수 있어요 🔊</div>
       ${listHtml}
     </div>
   `;
+
+  document.querySelectorAll('.wb-item').forEach(btn=>{
+    btn.onclick = ()=>{
+      const idx = Number(btn.dataset.idx);
+      speakWord(wordbook[idx].w);
+    };
+  });
+}
+
+function speakWord(text){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'en-US';
+    utter.rate = 0.85;
+    window.speechSynthesis.speak(utter);
+  }catch(e){
+    console.error('발음 재생 실패', e);
+  }
 }
 
 function render(){
