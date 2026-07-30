@@ -187,6 +187,19 @@
   .qline{font-size:24px;}
   .qword{color:var(--blue); font-family:'Jua',sans-serif; font-size:38px; margin-top:10px;}
   .blank{color:var(--pink); font-weight:900;}
+  .qspeaker{
+    display:block;
+    margin:12px auto 0;
+    font-size:30px;
+    background:#fff;
+    border:3px solid var(--blue);
+    border-radius:50%;
+    width:56px;
+    height:56px;
+    cursor:pointer;
+    box-shadow:0 4px 0 #cfe6f5;
+  }
+  .qspeaker:active{transform:translateY(3px); box-shadow:none;}
 
   .options{
     display:grid;
@@ -312,18 +325,103 @@
     box-shadow:0 4px 0 #c94d7e;
   }
   .loading{text-align:center; font-size:22px; padding:60px 0; color:#999;}
+
+  /* login screen */
+  .loginbox{
+    background:#fff;
+    border-radius:28px;
+    padding:36px 26px;
+    text-align:center;
+    box-shadow:0 8px 0 rgba(0,0,0,0.06);
+  }
+  .loginbox p{
+    font-size:22px;
+    margin:0 0 18px;
+    color:var(--ink);
+  }
+  .loginbox input{
+    font-family:'Gaegu',sans-serif;
+    font-size:24px;
+    padding:12px 16px;
+    border-radius:16px;
+    border:3px solid var(--purple);
+    width:100%;
+    max-width:280px;
+    text-align:center;
+    margin-bottom:16px;
+    outline:none;
+  }
+  .loginbox button{
+    font-family:'Jua',sans-serif;
+    font-size:24px;
+    padding:14px 36px;
+    border:none;
+    border-radius:20px;
+    background:var(--purple);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 5px 0 #6b3aa8;
+  }
+  .loginbox button:active{transform:translateY(4px); box-shadow:none;}
+  .loginmsg{
+    color:#e0555a;
+    font-size:16px;
+    margin-top:6px;
+    min-height:20px;
+  }
+
+  /* player bar */
+  .playerbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:12px;
+    font-size:18px;
+  }
+  .playerbar .who{
+    font-family:'Jua',sans-serif;
+    color:var(--purple);
+  }
+  .resetbtn{
+    font-family:'Gaegu',sans-serif;
+    font-weight:700;
+    font-size:15px;
+    padding:6px 14px;
+    border-radius:14px;
+    border:2px solid #e0555a;
+    background:#fff;
+    color:#e0555a;
+    cursor:pointer;
+  }
+  .resetbtn:active{transform:translateY(2px);}
 </style>
 </head>
 <body>
 <div class="app">
   <h1>🌈 중1 영단어 게임 🌈</h1>
-  <div class="nav">
-    <button id="navGame" class="active">🎮 게임</button>
-    <button id="navBook">📒 내 단어장</button>
+
+  <div id="loginScreen">
+    <div class="loginbox">
+      <p>👋 이름을 쓰고 입장해주세요!<br>다음에 또 올 때 같은 이름으로 들어오면<br>쿠폰과 단어장이 그대로 남아있어요.</p>
+      <input id="nameInput" type="text" placeholder="이름을 입력하세요" maxlength="10">
+      <div class="loginmsg" id="loginMsg"></div>
+      <div><button id="startBtn">시작하기 🚀</button></div>
+    </div>
   </div>
 
-  <div id="root">
-    <div class="loading">불러오는 중... ⏳</div>
+  <div id="mainArea" style="display:none;">
+    <div class="playerbar">
+      <span class="who" id="whoLabel"></span>
+      <button class="resetbtn" id="resetBtn">♻️ 초기화</button>
+    </div>
+    <div class="nav">
+      <button id="navGame" class="active">🎮 게임</button>
+      <button id="navBook">📒 내 단어장</button>
+    </div>
+
+    <div id="root">
+      <div class="loading">불러오는 중... ⏳</div>
+    </div>
   </div>
 </div>
 
@@ -537,31 +635,50 @@ let currentQuestion = null;
 let lastWordKey = null;
 let answered = false;
 let selectedUnits = new Set(UNITS.map(u=>u.id)); // 기본: 전체 선택
+let currentName = null;
 
 const root = document.getElementById('root');
 const navGame = document.getElementById('navGame');
 const navBook = document.getElementById('navBook');
 let currentView = 'game';
 
+// ---------------- 이름(플레이어) 처리 ----------------
+function sanitizeName(raw){
+  return raw.trim().replace(/\s+/g,'_').replace(/["'\/\\]/g,'').slice(0,20);
+}
+function stateKey(){ return `game-state:${currentName}`; }
+function wordbookKey(){ return `wordbook:${currentName}`; }
+
 // ---------------- 저장/불러오기 ----------------
 async function loadAll(){
+  state = { coins:0, cards:[], wishCoupons:0 };
+  wordbook = [];
   try{
-    const g = await window.storage.get('game-state', false);
+    const g = await window.storage.get(stateKey(), false);
     if(g && g.value){ state = JSON.parse(g.value); }
   }catch(e){ /* 없으면 기본값 사용 */ }
   try{
-    const b = await window.storage.get('wordbook', false);
+    const b = await window.storage.get(wordbookKey(), false);
     if(b && b.value){ wordbook = JSON.parse(b.value); }
   }catch(e){ /* 없으면 빈 배열 */ }
 }
 
 async function saveState(){
-  try{ await window.storage.set('game-state', JSON.stringify(state), false); }
+  try{ await window.storage.set(stateKey(), JSON.stringify(state), false); }
   catch(e){ console.error('상태 저장 실패', e); }
 }
 async function saveWordbook(){
-  try{ await window.storage.set('wordbook', JSON.stringify(wordbook), false); }
+  try{ await window.storage.set(wordbookKey(), JSON.stringify(wordbook), false); }
   catch(e){ console.error('단어장 저장 실패', e); }
+}
+
+async function resetAll(){
+  state = { coins:0, cards:[], wishCoupons:0 };
+  wordbook = [];
+  try{ await window.storage.delete(stateKey(), false); }catch(e){ /* 이미 없을 수 있음 */ }
+  try{ await window.storage.delete(wordbookKey(), false); }catch(e){ /* 이미 없을 수 있음 */ }
+  currentQuestion = null;
+  render();
 }
 
 // ---------------- 문제 생성 ----------------
@@ -682,10 +799,10 @@ function renderGame(){
 
   let promptHtml;
   if(q.type==='meaning'){
-    promptHtml = `<div class="qline">이 단어의 뜻은<br>무엇일까요?</div><div class="qword">${q.target.w}</div>`;
+    promptHtml = `<div class="qline">이 단어의 뜻은<br>무엇일까요?</div><div class="qword">${q.target.w}</div><button class="qspeaker" id="qSpeakerBtn">🔊</button>`;
   }else{
     const parts = q.prompt.split('___');
-    promptHtml = `<div class="qline">빈칸에 알맞은 단어를<br>고르세요</div><div class="qword" style="font-size:24px;">${parts[0]}<span class="blank">____</span>${parts[1]||''}</div>`;
+    promptHtml = `<div class="qline">빈칸에 알맞은 단어를<br>고르세요</div><div class="qword" style="font-size:24px;">${parts[0]}<span class="blank">____</span>${parts[1]||''}</div><button class="qspeaker" id="qSpeakerBtn">🔊</button>`;
   }
 
   const optionsHtml = q.options.map(opt=>{
@@ -713,6 +830,12 @@ function renderGame(){
   `;
 
   bindUnitSelector();
+
+  const speakerBtn = document.getElementById('qSpeakerBtn');
+  if(speakerBtn){
+    speakerBtn.onclick = ()=>speakQuestion();
+  }
+  speakQuestion();
 
   if(redeemBtn){
     document.getElementById('redeemBtn').onclick = ()=>{
@@ -828,6 +951,17 @@ function renderBook(){
   });
 }
 
+function speakQuestion(){
+  const q = currentQuestion;
+  if(!q) return;
+  if(q.type==='meaning'){
+    speakWord(q.target.w);
+  }else{
+    const sentence = q.prompt.replace('___', '...');
+    speakWord(sentence);
+  }
+}
+
 function speakWord(text){
   try{
     if(!('speechSynthesis' in window)) return;
@@ -859,11 +993,41 @@ navBook.onclick = ()=>{
   render();
 };
 
-// ---------------- 시작 ----------------
-(async function init(){
+document.getElementById('resetBtn').onclick = async ()=>{
+  const ok = window.confirm('정말 초기화 할까요?\n모아둔 코인, 카드, 소원 쿠폰, 내 단어장이 모두 사라져요!');
+  if(!ok) return;
+  await resetAll();
+};
+
+// ---------------- 로그인/시작 ----------------
+const loginScreen = document.getElementById('loginScreen');
+const mainArea = document.getElementById('mainArea');
+const nameInput = document.getElementById('nameInput');
+const loginMsg = document.getElementById('loginMsg');
+const startBtn = document.getElementById('startBtn');
+const whoLabel = document.getElementById('whoLabel');
+
+async function startGame(){
+  const raw = nameInput.value;
+  const clean = sanitizeName(raw);
+  if(!clean){
+    loginMsg.textContent = '이름을 입력해주세요!';
+    return;
+  }
+  currentName = clean;
+  loginScreen.style.display = 'none';
+  mainArea.style.display = 'block';
+  whoLabel.textContent = `👤 ${clean}님`;
+  root.innerHTML = '<div class="loading">불러오는 중... ⏳</div>';
   await loadAll();
+  currentView = 'game';
   render();
-})();
+}
+
+startBtn.onclick = startGame;
+nameInput.addEventListener('keydown', (e)=>{
+  if(e.key==='Enter') startGame();
+});
 </script>
 </body>
 </html>
