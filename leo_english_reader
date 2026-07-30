@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦁Leo's English Reader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sun:#FFD23F;
+    --coral:#FF6B6B;
+    --sky:#4CC9F0;
+    --grass:#6BCB77;
+    --grape:#B084F5;
+    --tangerine:#FF9F45;
+    --ink:#3A2E39;
+    --cream:#FFF8EC;
+    --card:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Baloo 2','Gowun Dodum',sans-serif;
+    background:
+      radial-gradient(circle at 10% 10%, #FFF0C2 0, transparent 40%),
+      radial-gradient(circle at 90% 20%, #CDEBFF 0, transparent 45%),
+      radial-gradient(circle at 20% 90%, #D9F7DD 0, transparent 45%),
+      var(--cream);
+    color:var(--ink);
+    min-height:100vh;
+    padding-bottom:60px;
+  }
+  header{
+    text-align:center;
+    padding:28px 16px 18px;
+  }
+  header h1{
+    font-size:clamp(30px,7vw,46px);
+    margin:0;
+    font-weight:800;
+    letter-spacing:-1px;
+    text-shadow: 3px 3px 0 #fff, 5px 5px 0 rgba(255,107,107,0.35);
+  }
+  header p{
+    font-size:clamp(15px,3vw,19px);
+    font-weight:600;
+    color:#7a6a8a;
+    margin:8px 0 0;
+  }
+  .wrap{
+    max-width:820px;
+    margin:0 auto;
+    padding:0 16px;
+  }
+
+  /* ---------- MENU VIEW ---------- */
+  .unit-card{
+    background:var(--card);
+    border-radius:28px;
+    padding:20px 22px;
+    margin:18px 0;
+    box-shadow:0 8px 0 rgba(0,0,0,0.06), 0 14px 30px rgba(0,0,0,0.06);
+    border:4px solid transparent;
+  }
+  .unit-card:nth-child(7n+1){border-color:var(--coral);}
+  .unit-card:nth-child(7n+2){border-color:var(--sky);}
+  .unit-card:nth-child(7n+3){border-color:var(--grass);}
+  .unit-card:nth-child(7n+4){border-color:var(--grape);}
+  .unit-card:nth-child(7n+5){border-color:var(--tangerine);}
+  .unit-card:nth-child(7n+6){border-color:var(--sun);}
+  .unit-card:nth-child(7n+7){border-color:var(--coral);}
+
+  .unit-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .unit-title{
+    font-size:clamp(19px,4vw,24px);
+    font-weight:700;
+    margin:0;
+  }
+  .unit-sub{
+    font-size:14px;
+    font-weight:600;
+    color:#8a7d94;
+    margin:2px 0 0;
+  }
+  .full-btn{
+    border:none;
+    border-radius:999px;
+    padding:10px 18px;
+    font-family:inherit;
+    font-weight:700;
+    font-size:15px;
+    color:#fff;
+    background:linear-gradient(135deg,var(--grape),#8b5cf6);
+    cursor:pointer;
+    box-shadow:0 4px 0 #6d3fc9;
+    white-space:nowrap;
+  }
+  .full-btn:active{transform:translateY(3px);box-shadow:none;}
+
+  .day-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(64px,1fr));
+    gap:10px;
+    margin-top:16px;
+  }
+  .day-btn{
+    border:none;
+    border-radius:16px;
+    padding:12px 4px;
+    font-family:inherit;
+    font-weight:700;
+    font-size:16px;
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 4px 0 rgba(0,0,0,0.18);
+    transition:transform .08s;
+  }
+  .day-btn:active{transform:translateY(3px);box-shadow:none;}
+  .c0{background:var(--coral);} .c1{background:var(--sky);}
+  .c2{background:var(--grass);} .c3{background:var(--grape);}
+  .c4{background:var(--tangerine);} .c5{background:#F76E9E;}
+  .c6{background:#5AC8FA;}
+
+  /* ---------- DAY / FULL VIEW ---------- */
+  .top-bar{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin:20px 0 10px;
+  }
+  .back-btn{
+    border:none;
+    background:var(--ink);
+    color:#fff;
+    font-family:inherit;
+    font-weight:700;
+    font-size:16px;
+    padding:10px 18px;
+    border-radius:999px;
+    cursor:pointer;
+    box-shadow:0 4px 0 #1c1620;
+  }
+  .back-btn:active{transform:translateY(3px);box-shadow:none;}
+  .view-title{
+    font-size:clamp(20px,4.5vw,28px);
+    font-weight:800;
+    margin:0;
+  }
+  .hint{
+    text-align:center;
+    font-weight:600;
+    color:#8a7d94;
+    font-size:15px;
+    margin:6px 0 20px;
+  }
+
+  .sentence-card{
+    background:var(--card);
+    border-radius:22px;
+    padding:18px 20px;
+    margin:14px 0;
+    cursor:pointer;
+    box-shadow:0 6px 0 rgba(0,0,0,0.07);
+    border:3px solid #f1e9d8;
+    transition:transform .06s, border-color .15s;
+    position:relative;
+  }
+  .sentence-card:active{transform:scale(0.98);}
+  .sentence-card.playing{border-color:var(--sky);}
+  .sentence-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .speaker{
+    flex:0 0 auto;
+    width:42px;height:42px;
+    border-radius:50%;
+    background:linear-gradient(135deg,var(--sky),#2f9fd1);
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;
+    color:#fff;
+    box-shadow:0 3px 0 #1c7ba3;
+  }
+  .en-text{
+    font-size:clamp(18px,4.2vw,23px);
+    font-weight:600;
+    line-height:1.4;
+  }
+  .kr-text{
+    display:none;
+    margin-top:12px;
+    padding-top:12px;
+    border-top:2px dashed #e5d9c3;
+    font-family:'Gowun Dodum',sans-serif;
+    font-size:clamp(16px,3.8vw,20px);
+    color:#5b4a68;
+    font-weight:400;
+  }
+  .kr-text.show{display:block;}
+
+  .para-card{
+    background:var(--card);
+    border-radius:22px;
+    padding:20px 22px;
+    margin:16px 0;
+    box-shadow:0 6px 0 rgba(0,0,0,0.07);
+    border:3px solid #f1e9d8;
+  }
+  .para-top{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:10px;
+  }
+  .play-btn{
+    flex:0 0 auto;
+    border:none;
+    width:48px;height:48px;
+    border-radius:50%;
+    background:linear-gradient(135deg,var(--grass),#3fae52);
+    color:#fff;
+    font-size:20px;
+    cursor:pointer;
+    box-shadow:0 4px 0 #2c8a3c;
+  }
+  .play-btn:active{transform:translateY(3px);box-shadow:none;}
+  .para-text{
+    font-size:clamp(17px,3.8vw,20px);
+    line-height:1.7;
+    font-weight:500;
+    white-space:pre-line;
+  }
+
+  footer{
+    text-align:center;
+    color:#a595ae;
+    font-size:13px;
+    margin-top:40px;
+  }
+  ::selection{background:#FFE28A;}
+</style>
+</head>
+<body>
+<header>
+  <h1>🦁Leo's English Reader</h1>
+  <p>날짜(Day)를 눌러 문장을 읽고 들어봐요! 🎧</p>
+</header>
+<div class="wrap" id="app"></div>
+<footer>문장을 누르면 발음이 나오고, 한 번 더 누르면 뜻이 보여요 🌈</footer>
+
+<script>
+const UNITS = [
+{
+  num:1, title:"Unit 1. Are You Ready?", sub:"What's in Your School Survival Kit?", color:0,
+  days:{
+    1:[["Hello, everyone!","안녕하세요, 여러분!"],
+       ["Welcome to my class!","제 수업에 오신 것을 환영해요!"],
+       ["I'm Ms. Seo, your English teacher.","저는 여러분의 영어 선생님, 서 선생님이에요."],
+       ["Today is the first day of middle school.","오늘은 중학교 첫날이에요."],
+       ["Are you nervous?","긴장되나요?"]],
+    2:[["I'm also nervous.","저도 긴장돼요."],
+       ["But I feel okay with this box.","하지만 이 상자가 있어서 괜찮아요."],
+       ["This box is my school survival kit.","이 상자는 저의 학교 생존 키트예요."],
+       ["I have many things in it.","그 안에는 많은 것들이 있어요."]],
+    3:[["First, I have some sticky notes.","먼저, 포스트잇이 있어요."],
+       ["I use them on the first day.","저는 첫날에 그것들을 사용해요."],
+       ["I write your names.","여러분의 이름을 적어요."],
+       ["I remember them.","그 이름들을 기억해요."]],
+    4:[["Next, I have some candy.","다음으로, 사탕이 있어요."],
+       ["These are for you.","이것들은 여러분을 위한 거예요."],
+       ["They're sweet.","그것들은 달아요."],
+       ["They're like your smiles.","여러분의 미소 같아요."]],
+    5:[["What do you want in your school survival kit?","여러분의 학교 생존 키트에는 무엇을 넣고 싶나요?"],
+       ["A mirror!","거울이요!"],
+       ["I look in the mirror.","저는 거울을 봐요."],
+       ["Just be you!","그냥 나답게!"]],
+    6:[["For me, a stress ball.","저는 스트레스 볼이요."],
+       ["I hold the ball tightly.","공을 꽉 쥐어요."],
+       ["Then my stress goes away.","그러면 스트레스가 사라져요."],
+       ["An eraser!","지우개요!"]],
+    7:[["It erases my mistakes.","그것은 제 실수를 지워줘요."],
+       ["I start all over again.","저는 다시 시작해요."],
+       ["I need a Band-Aid!","저는 반창고가 필요해요!"],
+       ["My feelings get hurt sometimes.","가끔 마음이 상해요."],
+       ["But with the Band-Aid, I'm okay.","하지만 반창고가 있으면 괜찮아요."]],
+    8:[["Great!","좋아요!"],
+       ["Now make your own survival kit.","이제 여러분만의 생존 키트를 만드세요."],
+       ["Let's have a great year!","멋진 한 해를 보내요!"]]
+  },
+  full:[
+`Hello, everyone! Welcome to my class! I'm Ms. Seo, your English teacher. Today is the first day of middle school. Are you nervous? I'm also nervous, but I feel okay with this box.`,
+`This box is my school survival kit. I have many things in it. First, I have some sticky notes. I use them on the first day. I write your names and remember them. Next, I have some candy. These are for you. They're sweet, like your smiles.`,
+`Ms. Seo: Now, what do you want in your school survival kit?`,
+`Somin: A mirror! I look in the mirror and say, "Just be you!"`,
+`Jiwon: For me, a stress ball. I hold the ball tightly. Then my stress goes away.`,
+`Mike: An eraser! It erases my mistakes. I start all over again!`,
+`Emily: I need a Band-Aid! My feelings get hurt sometimes. But with the Band-Aid, I'm okay.`,
+`Ms. Seo: Great! Now make your own survival kit. Let's have a great year!`
+  ]
+},
+{
+  num:2, title:"Unit 2. My Happy Life", sub:"Then and Now", color:1,
+  days:{
+    9:[["Meet Jihun and Minjun.","지훈이와 민준이를 소개할게요."],
+       ["They are 12 years old.","그들은 12살이에요."],
+       ["They both love comics and music.","둘 다 만화와 음악을 좋아해요."],
+       ["They live in different times.","그들은 다른 시대에 살아요."]],
+    10:[["Jihun lives in 1995.","지훈이는 1995년에 살아요."],
+       ["Minjun lives in the present.","민준이는 현재에 살아요."],
+       ["Let's look at their lives.","그들의 삶을 살펴봐요."]],
+    11:[["It is morning.","아침이에요."],
+       ["Ring, ring, ring!","따르릉, 따르릉, 따르릉!"],
+       ["The alarm clock is going off.","자명종이 울려요."],
+       ["Jihun gets up.","지훈이가 일어나요."]],
+    12:[["He looks out the window.","그는 창밖을 봐요."],
+       ["He checks the weather.","날씨를 확인해요."],
+       ["It is raining.","비가 와요."],
+       ["He puts his books and lunchbox in his backpack.","책과 도시락을 가방에 넣어요."]],
+    13:[["He grabs his umbrella.","우산을 챙겨요."],
+       ["As he leaves, he says,","나가면서 그는 말해요,"],
+       ["My backpack is so heavy!","내 가방이 너무 무거워!"]],
+    14:[["Loud hip-hop music is coming from Minjun's smartphone.","민준이의 스마트폰에서 시끄러운 힙합 음악이 나와요."],
+       ["Minjun wakes up.","민준이가 잠에서 깨요."],
+       ["He asks AI Joe,","그는 AI 조에게 물어봐요,"],
+       ["What's the weather like today?","오늘 날씨가 어때?"]],
+    15:[["It's sunny.","맑아요."],
+       ["Then Minjun gets ready for school.","그러고 나서 민준이는 학교 갈 준비를 해요."],
+       ["He simply picks up his tablet.","그는 그냥 태블릿을 챙겨요."]],
+    16:[["Jihun is waiting for the bus.","지훈이는 버스를 기다리고 있어요."],
+       ["There are many coins in his pocket.","그의 주머니에는 동전이 많아요."],
+       ["He takes out 200 won.","200원을 꺼내요."],
+       ["He gets on the bus.","버스를 타요."]],
+    17:[["There is an empty seat on the bus.","버스에 빈 자리가 있어요."],
+       ["Jihun sits down.","지훈이가 앉아요."],
+       ["He reads his comic book.","만화책을 읽어요."]],
+    18:[["Minjun is taking the bus.","민준이는 버스를 타고 있어요."],
+       ["He is holding a bus card in his hand.","손에 버스 카드를 들고 있어요."],
+       ["There are many people on the bus.","버스에 사람이 많아요."]],
+    19:[["There is no seat for him.","그를 위한 자리가 없어요."],
+       ["But that is okay.","하지만 괜찮아요."],
+       ["He reads his favorite webtoon.","그가 좋아하는 웹툰을 읽어요."],
+       ["He reads it on his smartphone.","스마트폰으로 읽어요."]],
+    20:[["At night,","밤에,"],
+       ["Jihun is listening to his favorite radio show.","지훈이는 좋아하는 라디오 방송을 들어요."],
+       ["He records songs from the radio on a tape.","라디오에서 나오는 노래를 테이프에 녹음해요."]],
+    21:[["There are many great songs on the tape.","테이프에는 좋은 노래가 많아요."],
+       ["Sometimes, he writes a letter to the DJ.","가끔 그는 DJ에게 편지를 써요."],
+       ["He requests a song.","노래를 신청해요."]],
+    22:[["Minjun is using his tablet.","민준이는 태블릿을 사용하고 있어요."],
+       ["He is writing a rap song.","랩 노래를 쓰고 있어요."],
+       ["Later, he shares the song on social media.","나중에 그는 그 노래를 SNS에 공유해요."]],
+    23:[["He gets likes from people around the world.","전 세계 사람들에게 '좋아요'를 받아요."],
+       ["Minjun checks his DMs before bedtime.","민준이는 자기 전에 DM을 확인해요."],
+       ["One message says,","한 메시지에는 이렇게 쓰여 있어요,"],
+       ["U R AMAZING!","너 정말 대단해!"]]
+  },
+  full:[
+`Meet Jihun and Minjun. They are 12 years old. They both love comics and music, but they live in different times. Jihun lives in 1995, and Minjun lives in the present. Let's look at their lives.`,
+`It is morning. Ring, ring, ring! The alarm clock is going off. Jihun gets up. He looks out the window and checks the weather. It is raining. He puts his books and lunchbox in his backpack and grabs his umbrella. As he leaves, he says, "Ugh! My backpack is so heavy!"`,
+`Loud hip-hop music is coming from Minjun's smartphone. Minjun wakes up. He asks AI Joe, "Hey Joe, what's the weather like today?" "It's sunny," says Joe. Then, Minjun gets ready for school. He simply picks up his tablet.`,
+`Jihun is waiting for the bus. There are many coins in his pocket. He takes out 200 won and gets on the bus. Lucky him! There is an empty seat on the bus. Jihun sits down and reads his comic book.`,
+`Minjun is taking the bus. He is holding a bus card in his hand. There are many people on the bus. There is no seat for him, but that is okay. He reads his favorite webtoon on his smartphone.`,
+`At night, Jihun is listening to his favorite radio show. He records songs from the radio on a tape. There are many great songs on the tape. Sometimes, he writes a letter to the DJ and requests a song.`,
+`Minjun is using his tablet and writing a rap song. Later, he shares the song on social media. He gets "likes" from people around the world. Minjun checks his DMs before bedtime. One message says, "U R AMAZING!"`
+  ]
+},
+{
+  num:3, title:"Unit 3. Be Open to Differences", sub:"We Have a Cat on Our Team!", color:2,
+  days:{
+    24:[["Coach Biscuit's team was on the field.","비스킷 코치의 팀이 운동장에 있었어요."],
+       ["It was Saturday practice.","토요일 연습이었어요."],
+       ["I have some exciting news for you.","여러분에게 신나는 소식이 있어요."],
+       ["We have a new member.","새로운 멤버가 있어요."]],
+    25:[["Let's welcome our new friend.","새 친구를 환영해요."],
+       ["Cathy, please come out.","캐시야, 나와줘."],
+       ["Is the new member a cat?","새 멤버가 고양이야?"],
+       ["I can't believe it.","믿을 수가 없어."]],
+    26:[["Let's be nice to her.","그녀에게 친절하게 대해요."],
+       ["The dogs looked nervous.","개들은 긴장한 것처럼 보였어요."],
+       ["We never had a cat on our team.","우리 팀에는 고양이가 있었던 적이 없어요."],
+       ["Maybe Cathy never had a dog on her team.","어쩌면 캐시도 자기 팀에 개가 있었던 적이 없을지 몰라요."]],
+    27:[["Now, let's play a game.","이제 게임을 해요."],
+       ["But can she play fetch?","하지만 그녀가 공 물어오기를 할 수 있어?"],
+       ["She's not a dog.","그녀는 개가 아니야."],
+       ["Only dogs can play fetch.","개만 공 물어오기를 할 수 있어."]],
+    28:[["Be nice!","친절하게 대해!"],
+       ["We can teach her.","우리가 가르쳐줄 수 있어."],
+       ["This is your first day.","오늘이 네 첫날이야."],
+       ["You can watch and join the game anytime.","언제든 보다가 게임에 참여해도 돼."]],
+    29:[["The game began.","게임이 시작됐어요."],
+       ["Cathy watched silently.","캐시는 조용히 지켜봤어요."],
+       ["Can somebody get the ball?","누가 공 좀 가져올 수 있어?"],
+       ["It's going over the fence!","공이 울타리를 넘어가고 있어!"]],
+    30:[["I'll get it!","내가 가져올게!"],
+       ["Everyone ran toward the ball.","모두가 공을 향해 달렸어요."],
+       ["They bumped into each other.","서로 부딪혔어요."],
+       ["They fell down.","넘어졌어요."]],
+    31:[["Then Cathy jumped into the air.","그때 캐시가 공중으로 뛰어올랐어요."],
+       ["She got the ball.","공을 잡았어요."],
+       ["She quickly passed it over.","재빨리 패스했어요."]],
+    32:[["Wow, Cathy!","와, 캐시!"],
+       ["How did you do that?","어떻게 그렇게 한 거야?"],
+       ["The dogs were surprised.","개들은 놀랐어요."]],
+    33:[["After the game,","게임이 끝난 후,"],
+       ["everyone talked about Cathy.","모두가 캐시에 대해 이야기했어요."],
+       ["We have a cat on our team now.","이제 우리 팀에 고양이가 있어요."],
+       ["I'm so glad!","정말 기뻐요!"]],
+    34:[["Great!","좋아요!"],
+       ["We have another new member.","또 다른 새 멤버가 있어요."],
+       ["Everyone got excited.","모두가 신났어요."],
+       ["Cookie, please come out.","쿠키야, 나와줘."]]
+  },
+  full:[
+`Coach Biscuit's team was on the field for Saturday practice. "I have some exciting news for you. We have a new member," Coach Biscuit said. "Everyone, let's welcome our new friend. Cathy, please come out."`,
+`"Coach, is the new member a cat?" Max shouted. "I can't believe it," Rusty said. "Let's be nice to her!" said Coach Biscuit. But the dogs looked nervous. "We never had a cat on our team!" they said. "Maybe Cathy never had a dog on her team. Now, let's play a game," Coach Biscuit said. "But can she play fetch? She's not a dog. Only dogs can play fetch," Rusty said. "Be nice! We can teach her," another dog said softly.`,
+`Coach Biscuit said, "Cathy, this is your first day. So you can watch and join the game anytime." The game began. Cathy watched silently. "Can somebody get the ball? It's going over the fence!" Rusty shouted. "I'll get it!" Everyone looked at the ball and ran toward it. They bumped into each other and fell down.`,
+`Then, Cathy jumped into the air and got the ball. She quickly passed it over. "Wow, Cathy! How did you do that?" The dogs were surprised.`,
+`After the game, everyone talked about Cathy. "We have a cat on our team now. I'm so glad!" said Max. "Great!" Coach Biscuit said, "We have another new member." "A dog or a cat?" Everyone got excited. "Cookie! Please come out." Coach Biscuit called out to the new member.`
+  ]
+},
+{
+  num:4, title:"Unit 4. Let's Travel Together!", sub:"Plan B Was Great, Too!", color:3,
+  days:{
+    35:[["This Saturday is my grandma's birthday.","이번 토요일은 할머니 생신이에요."],
+       ["Dad and I will visit her in Gunsan.","아빠와 저는 군산에 있는 할머니를 방문할 거예요."],
+       ["Dad usually makes plans.","보통 아빠가 계획을 세워요."],
+       ["I will make a plan this time.","이번에는 제가 계획을 세울 거예요."]],
+    36:[["First, I need bus tickets.","먼저, 버스표가 필요해요."],
+       ["I will buy tickets.","표를 살 거예요."],
+       ["The streets will not be busy.","거리가 붐비지 않을 거예요."],
+       ["It will be early in the morning.","이른 아침일 거예요."]],
+    37:[["Second, I will get a birthday cake.","둘째로, 생일 케이크를 살 거예요."],
+       ["I will buy a strawberry cake.","딸기 케이크를 살 거예요."],
+       ["My grandma loves strawberries.","할머니는 딸기를 아주 좋아하세요."]],
+    38:[["Third,","셋째로,"],
+       ["I will prepare for the birthday party.","생일 파티를 준비할 거예요."],
+       ["I will find a nice seafood restaurant.","좋은 해산물 식당을 찾을 거예요."]],
+    39:[["Fourth,","넷째로,"],
+       ["we will take family pictures.","가족사진을 찍을 거예요."],
+       ["Taking family photos will be great.","가족사진을 찍는 건 멋질 거예요."],
+       ["I'm so excited!","정말 신나요!"]],
+    40:[["My plan looked perfect.","제 계획은 완벽해 보였어요."],
+       ["But Dad and I woke up late.","하지만 아빠와 저는 늦게 일어났어요."],
+       ["We missed the bus.","버스를 놓쳤어요."]],
+    41:[["It's okay, Dad.","괜찮아요, 아빠."],
+       ["We have a plan B.","우리에겐 대안(플랜 B)이 있어요."],
+       ["Our plan B is taking the train.","우리 플랜 B는 기차를 타는 거예요."]],
+    42:[["Great!","좋아!"],
+       ["You had another plan.","네게 다른 계획이 있었구나."],
+       ["We can be there in time.","우린 제시간에 도착할 수 있어요."],
+       ["We took the train.","우리는 기차를 탔어요."]],
+    43:[["It even had a special ondol room.","심지어 특별한 온돌방도 있었어요."],
+       ["Dad and I enjoyed the train ride.","아빠와 저는 기차 여행을 즐겼어요."],
+       ["We got there in time.","제시간에 도착했어요."],
+       ["Hooray!","만세!"]],
+    44:[["There was no strawberry cake.","딸기 케이크가 없었어요."],
+       ["We got a carrot cake instead.","대신 당근 케이크를 샀어요."],
+       ["Finally, we met Grandma.","드디어 할머니를 만났어요."]],
+    45:[["She loved the food.","할머니는 음식을 아주 좋아하셨어요."],
+       ["She even loved the carrot cake.","당근 케이크도 좋아하셨어요."],
+       ["The birthday party was a big success.","생일 파티는 대성공이었어요."]],
+    46:[["Lastly,","마지막으로,"],
+       ["we went to the studio.","우리는 스튜디오에 갔어요."],
+       ["We put on school uniforms for fun.","재미로 교복을 입었어요."]],
+    47:[["Grandma, you look like a student.","할머니, 학생처럼 보이세요."],
+       ["We took nice pictures together.","우리는 함께 멋진 사진을 찍었어요."],
+       ["Grandma looked so happy.","할머니는 정말 행복해 보이셨어요."]],
+    48:[["Thank you for everything today.","오늘 모든 것에 감사해요."],
+       ["I love you so much.","정말 사랑해요."],
+       ["Plan B was great, too!","플랜 B도 좋았어요!"]]
+  },
+  full:[
+`This Saturday is my grandma's birthday. Dad and I will visit her in Gunsan. Dad usually makes plans for our family trips, but I will make a plan this time!`,
+`My Plan
+First, I need bus tickets! I will buy tickets for the first bus from Suwon to Gunsan. The streets will not be busy early in the morning.
+Second, I will get a birthday cake! I will buy a strawberry cake at a famous bakery in Gunsan. My grandma loves strawberries.
+Third, I will prepare for my grandma's birthday party! I will find a nice seafood restaurant.
+Fourth, we will take family pictures! Taking family photos in a studio will be great. I'm so excited!`,
+`On Grandma's Birthday
+My plan looked perfect. But Dad and I woke up late and missed the bus. I said, "It's okay, Dad. We have a plan B. Our plan B is taking the train." Dad said, "Great! You had another plan. Thanks to you, we can be there in time." So we took the train, and it even had a special ondol room! Dad and I really enjoyed riding on the train. We got there in time. Hooray!`,
+`We had another problem. There was no strawberry cake at the bakery. We got a carrot cake instead. Finally, we met Grandma at the seafood restaurant. She loved the food, even the carrot cake! Her birthday party was a big success.`,
+`Lastly, we went to the studio. We put on school uniforms for fun. I said, "Grandma, you look like a student in that uniform." We took very nice pictures together. My grandma looked so happy. She said, "Thank you for everything today. I love you so much!"`,
+`My plan did not work out perfectly, but I was not upset. I had another plan. Plan B was great, too!`
+  ]
+},
+{
+  num:5, title:"Unit 5. Think Green, Live Green", sub:"Small Actions, Big Change - Zero-waste", color:4,
+  days:{
+    49:[["Last month,","지난달,"],
+       ["I saw the Zero Waste Challenge.","저는 제로 웨이스트 챌린지를 봤어요."],
+       ["I liked her idea.","그녀의 아이디어가 마음에 들었어요."],
+       ["I tried the challenge.","저는 챌린지에 도전했어요."]],
+    50:[["Here is my one-week plan.","여기 저의 일주일 계획이 있어요."],
+       ["Today is the first day.","오늘이 첫날이에요."],
+       ["Knowing your trash is important.","자신의 쓰레기를 아는 것이 중요해요."]],
+    51:[["I went through my garbage.","저는 제 쓰레기를 살펴봤어요."],
+       ["I was throwing away too much paper.","종이를 너무 많이 버리고 있었어요."],
+       ["I was throwing away too much plastic.","플라스틱도 너무 많이 버리고 있었어요."]],
+    52:[["I should not be so wasteful.","저는 그렇게 낭비하면 안 돼요."],
+       ["It was really hot today.","오늘은 정말 더웠어요."],
+       ["Dad bought me lemonade.","아빠가 레모네이드를 사주셨어요."]],
+    53:[["It came with a straw.","빨대가 딸려 왔어요."],
+       ["No straw, please.","빨대는 빼주세요."],
+       ["Thank you.","감사합니다."],
+       ["I should say this more often.","이 말을 더 자주 해야겠어요."]],
+    54:[["Today I cleaned my room.","오늘 저는 방을 청소했어요."],
+       ["I found too many T-shirts.","티셔츠가 너무 많은 걸 발견했어요."],
+       ["I didn't wear some of them.","몇 개는 입지 않았어요."]],
+    55:[["With Mom's help,","엄마의 도움으로,"],
+       ["I used an app.","저는 앱을 사용했어요."],
+       ["We listed my T-shirts.","제 티셔츠들을 등록했어요."]],
+    56:[["One person wanted one.","한 사람이 하나를 원했어요."],
+       ["I sold it to him.","그에게 팔았어요."],
+       ["I bought a used badminton racket.","중고 배드민턴 라켓을 샀어요."],
+       ["Hooray!","만세!"]],
+    57:[["This morning,","오늘 아침,"],
+       ["I ran out of shampoo.","샴푸가 다 떨어졌어요."],
+       ["I took the empty bottle.","빈 병을 가져갔어요."]],
+    58:[["I went to a zero-waste shop.","제로 웨이스트 가게에 갔어요."],
+       ["I filled my bottle with shampoo.","병에 샴푸를 채웠어요."],
+       ["It smelled so good.","냄새가 정말 좋았어요."]],
+    59:[["I cut down on plastic.","플라스틱 사용을 줄였어요."],
+       ["I posted my pictures.","사진을 올렸어요."],
+       ["I got many likes.","'좋아요'를 많이 받았어요."]],
+    60:[["Some friends tried the challenge.","몇몇 친구들도 챌린지에 도전했어요."],
+       ["We shared useful tips.","유용한 팁을 나눴어요."],
+       ["We helped the Earth together.","함께 지구를 도왔어요."]]
+  },
+  full:[
+`Last month, I saw "#ZeroWasteChallenge" on Jiwoo's social media. The challenge was making no trash. I liked her idea and tried the challenge. Here is my one-week plan for a trash-free life.`,
+`DAY 1 Know your trash.
+Today is the first day of the challenge. Jiwoo gave me some advice. She said, "Knowing your trash is very important." So I went through my garbage. I was throwing away too much paper and plastic! I should not be so wasteful.`,
+`DAY 3 Say NO to straws.
+It was really hot today, so Dad bought me lemonade. It came with a straw. I said, "No straw, please. Thank you!" I should say this more often.`,
+`DAY 5 Buy and sell secondhand items.
+Today I cleaned my room and found too many T-shirts. I didn't wear some of them for a long time. With Mom's help, I used an app for buying and selling secondhand items. We listed my T-shirts on the app. To my surprise, one person wanted one, and I sold it to him. With that money, I bought a used badminton racket. Hooray!`,
+`DAY 7 Visit a zero-waste shop.
+This morning, I ran out of shampoo. I took the empty bottle and went to a zero-waste shop. I filled my bottle with shampoo there. It smelled so good! This way, I cut down on plastic.`,
+`I posted my pictures on my social media. I got many "likes." Some of my friends even tried the challenge. We shared useful tips and ideas. This challenge was good for the environment, but it was also great for our friendship. We helped the Earth together.`
+  ]
+},
+{
+  num:6, title:"Unit 6. Our Future Me", sub:"Who Do I Want to Be?", color:5,
+  days:{
+    61:[["My teacher told us about tomorrow's presentation.","선생님이 내일 발표에 대해 말씀하셨어요."],
+       ["He asked us a question.","우리에게 질문을 하셨어요."],
+       ["What do you want to be when you grow up?","커서 무엇이 되고 싶나요?"]],
+    62:[["I said to myself,","저는 속으로 말했어요,"],
+       ["Oh, no. Not again!","오, 안 돼. 또야!"],
+       ["What do I want to be?","나는 뭐가 되고 싶지?"],
+       ["I have no idea.","전혀 모르겠어요."]],
+    63:[["At home,","집에서,"],
+       ["I asked my family.","가족에게 물어봤어요."],
+       ["I asked about their dream jobs.","그들의 꿈의 직업에 대해 물어봤어요."]],
+    64:[["Dad said,","아빠가 말씀하셨어요,"],
+       ["I wanted to be an astronaut.","나는 우주비행사가 되고 싶었어."],
+       ["I wanted to travel to the moon.","나는 달로 여행 가고 싶었어."]],
+    65:[["Angela said,","안젤라가 말했어요,"],
+       ["I'm going to be a robot designer.","나는 로봇 디자이너가 될 거야."],
+       ["Sophie shouted,","소피가 외쳤어요,"],
+       ["I'm going to be a superhero.","나는 슈퍼히어로가 될 거야."]],
+    66:[["Or a bird!","아니면 새!"],
+       ["Dad asked me,","아빠가 저에게 물어보셨어요,"],
+       ["What about you, Noah?","노아, 너는 어때?"],
+       ["What do you want to be?","뭐가 되고 싶니?"]],
+    67:[["I was stressed out.","저는 스트레스를 받았어요."],
+       ["Later,","나중에,"],
+       ["Mom came home from work.","엄마가 퇴근해서 집에 오셨어요."]],
+    68:[["Is everything okay?","다 괜찮니?"],
+       ["she asked.","엄마가 물으셨어요."],
+       ["No, Mom.","아니요, 엄마."],
+       ["Something is wrong with me.","저에게 뭔가 문제가 있어요."]],
+    69:[["I'm not going to be anything.","저는 아무것도 되지 못할 거예요."],
+       ["What do you mean?","무슨 뜻이니?"],
+       ["she asked.","엄마가 물으셨어요."]],
+    70:[["Everyone has a dream job.","모두에게 꿈의 직업이 있어요."],
+       ["Even Sophie does.","소피도 있어요."],
+       ["And she's only three!","그런데 걔는 겨우 세 살이에요!"]],
+    71:[["Mom said,","엄마가 말씀하셨어요,"],
+       ["I don't know my dream job.","나는 내 꿈의 직업을 몰라."],
+       ["What?","뭐라고요?"]],
+    72:[["But you're a grown-up.","하지만 엄마는 어른이잖아요."],
+       ["And you have a job.","그리고 직업도 있잖아요."],
+       ["That's right, but...","맞아, 하지만..."]],
+    73:[["You take care of everyone.","엄마는 모두를 돌봐요."],
+       ["You have the answers.","엄마는 답을 알고 있어요."],
+       ["You're always nice.","엄마는 항상 친절해요."]],
+    74:[["You're not afraid of anything.","엄마는 아무것도 무서워하지 않아요."],
+       ["Most of all,","무엇보다도,"],
+       ["you're my mom!","엄마는 제 엄마예요!"]],
+    75:[["Mom smiled.","엄마가 웃으셨어요."],
+       ["I wanted to become that kind of person.","나는 그런 사람이 되고 싶었어."],
+       ["Mom!","엄마!"],
+       ["You're already that kind of person!","엄마는 이미 그런 사람이에요!"]],
+    76:[["Just then,","바로 그때,"],
+       ["I had an idea.","저에게 아이디어가 떠올랐어요."],
+       ["That's it!","바로 그거야!"],
+       ["Thanks, Mom!","고마워요, 엄마!"]],
+    77:[["The next day,","다음 날,"],
+       ["I gave a presentation.","저는 발표를 했어요."],
+       ["What do I want to be?","나는 뭐가 되고 싶을까?"]],
+    78:[["I don't know.","모르겠어요."],
+       ["Who do I want to be?","나는 누가 되고 싶을까?"],
+       ["I know that!","그건 알아요!"]],
+    79:[["I want to be a caring person.","저는 배려심 있는 사람이 되고 싶어요."],
+       ["I want to help others.","다른 사람들을 돕고 싶어요."],
+       ["I want to be a brave person.","용감한 사람이 되고 싶어요."]],
+    80:[["I want to try new things.","새로운 것들을 시도해보고 싶어요."],
+       ["Who do I want to be?","나는 누가 되고 싶을까?"],
+       ["I want to be me.","나는 내가 되고 싶어요."]]
+  },
+  full:[
+`My teacher told us about tomorrow's presentation. He asked us, "What do you want to be when you grow up?" I said to myself, "Oh, no. Not again! What do I want to be? I have no idea."`,
+`At home, I asked my family about their dream jobs. Dad said, "Well, I wanted to be an astronaut when I was young. I wanted to travel to the moon."
+"When I grow up, I'm going to be a robot designer," said my big sister Angela.
+My little sister Sophie shouted, "I'm going to be a superhero or a bird!"
+Dad asked me, "What about you, Noah? What do you want to be?"
+I was stressed out.`,
+`Later, Mom came home from work.
+"Noah, is everything okay?" she asked.
+"No, Mom. Something is wrong with me. I'm not going to be anything in the future."
+"What do you mean?" she asked.
+"Everyone has a dream job. Even Sophie does. And she's only three!" I cried.
+"Oh, Noah. I don't know my dream job."
+"What? But you're a grown-up, and you have a job," I said.
+"That's right, but…"
+"And you take care of everyone. You have the answers to everything," I went on. "You're always nice, and you're not afraid of anything. Most of all, you're my mom!"
+Mom smiled and said, "I hope you are right. I wanted to become that kind of person."
+"Mom! You're already that kind of person!"
+Just then, I had an idea. "That's it! Thanks, Mom!"`,
+`The next day, I gave a presentation.
+"What do I want to be when I grow up? I don't know. Who do I want to be? I know that!
+I want to be a caring person. I want to help others. I also want to be a brave person. I want to try new things.
+Who do I want to be? I want to be me."`
+  ]
+},
+{
+  num:7, title:"Unit 7. Our Future Me", sub:"Paran Quiz Show", color:6,
+  days:{
+    81:[["Welcome to the Paran Quiz Show!","파란 퀴즈쇼에 오신 것을 환영합니다!"],
+       ["I'm your host, Suji.","저는 진행자 수지예요."],
+       ["We have two finalists today.","오늘 두 명의 결승 진출자가 있어요."]],
+    82:[["Namjun from Class 2.","2반의 남준이요."],
+       ["Sara from Class 5.","5반의 사라요."],
+       ["How are you today?","오늘 기분이 어때요?"]],
+    83:[["I'm nervous.","긴장돼요."],
+       ["But I'll do my best.","하지만 최선을 다할게요."],
+       ["I'm excited!","신나요!"]],
+    84:[["The winner will receive a Fast Pass.","우승자는 패스트 패스를 받을 거예요."],
+       ["Today's topic is amazing facts.","오늘의 주제는 놀라운 사실들이에요."],
+       ["Are you ready?","준비됐나요?"]],
+    85:[["What is the largest desert in the world?","세계에서 가장 큰 사막은 무엇일까요?"],
+       ["It's the Sahara.","사하라예요."],
+       ["It's Antarctica.","남극이에요."]],
+    86:[["The answer is Antarctica.","정답은 남극입니다."],
+       ["Antarctica?","남극이요?"],
+       ["Really?","정말요?"]],
+    87:[["I thought a desert was hot.","저는 사막은 더운 곳인 줄 알았어요."],
+       ["A desert is a dry place.","사막은 건조한 곳이에요."],
+       ["It can be cold or hot.","춥거나 더울 수 있어요."]],
+    88:[["The Sahara is the largest hot desert.","사하라는 가장 큰 더운 사막이에요."],
+       ["Antarctica is larger.","남극이 더 커요."],
+       ["Antarctica is the world's largest desert.","남극이 세계에서 가장 큰 사막이에요."]],
+    89:[["Let's move on.","다음으로 넘어갈게요."],
+       ["What is the tallest mountain?","가장 높은 산은 무엇일까요?"],
+       ["It's Mount Everest.","에베레스트산이에요."]],
+    90:[["It's Mauna Kea.","마우나케아예요."],
+       ["What is the tallest mountain on Earth?","지구에서 가장 높은 산은 무엇일까요?"]],
+    91:[["Mount Everest is the tallest above sea level.","에베레스트는 해수면 위에서 가장 높아요."],
+       ["Mauna Kea begins below sea level.","마우나케아는 해수면 아래에서부터 시작해요."]],
+    92:[["Mauna Kea is taller.","마우나케아가 더 높아요."],
+       ["Then who is correct?","그럼 누가 맞나요?"],
+       ["You are both correct.","둘 다 맞아요."]],
+    93:[["Here comes the final question.","마지막 질문이 나옵니다."],
+       ["Which country has the most pyramids?","어느 나라에 피라미드가 가장 많을까요?"]],
+    94:[["I'm sure it's Egypt.","분명 이집트일 거예요."],
+       ["It's Sudan.","수단이에요."],
+       ["The answer is Sudan.","정답은 수단입니다."]],
+    95:[["Oh, really?","오, 정말요?"],
+       ["I'm surprised, too.","저도 놀랐어요."],
+       ["Tell us more.","더 알려주세요."]],
+    96:[["Sudan and Egypt are close to each other.","수단과 이집트는 서로 가까이 있어요."],
+       ["Egypt is more famous.","이집트가 더 유명해요."]],
+    97:[["Sudan has more pyramids than Egypt.","수단은 이집트보다 피라미드가 더 많아요."],
+       ["Thanks, Joe.","고마워, 조."]],
+    98:[["We have two winners today.","오늘 두 명의 우승자가 있어요."],
+       ["Congratulations, Namjun and Sara!","축하해요, 남준과 사라!"]]
+  },
+  full:[
+`Host: Welcome to the Paran Quiz Show! I'm your host, Suji. Today, we have two finalists, Namjun from Class 2 and Sara from Class 5. Namjun and Sara, how are you today?
+Namjun: I'm nervous, but I'll do my best.
+Sara: I'm excited!`,
+`Host: The winner will receive a Fast Pass for lunch. Today's topic is amazing facts about the world. I'm going to ask you three questions. Are you ready?
+Namjun & Sara: Yes, I'm ready.
+Host: Here is the first question. What is the largest desert in the world?
+Namjun: It's the Sahara.
+Sara: It's Antarctica.
+Host: The answer is … Antarctica!`,
+`Namjun: Antarctica? I thought a desert has to be hot and sandy.
+Host: Well, it doesn't need to be hot or sandy. We have AI Joe here. Hey Joe, can you tell us more about deserts?
+AI Joe: A desert is a dry place. It can be cold or hot. The Sahara is the largest hot desert in the world. But Antarctica is larger than the Sahara. So Antarctica is the world's largest desert.
+Host: Thank you, Joe. Let's move on to the next question. What is the tallest mountain in the world?`,
+`Namjun: It's Mount Everest.
+Sara: It's Mauna Kea in Hawaii.
+Host: Well, it's a difficult question. Hey Joe, what is the tallest mountain on Earth?
+AI Joe: Mount Everest is the tallest mountain above sea level. Mauna Kea begins below sea level. So from the bottom to the top, Mauna Kea is taller than Mount Everest.
+Host: Thank you, Joe.
+Sara: Then who is correct?
+Host: For this question, you are both correct.`,
+`Host: Now, here comes the final question. Which country has the most pyramids in the world?
+Sara: I'm sure it's Egypt!
+Namjun: It's Sudan.
+Host: The answer is … Sudan!
+Sara: Oh, really?
+Host: I'm surprised, too. Hey Joe, tell us more about it.
+AI Joe: Please look at this map. Sudan and Egypt are close to each other. Egypt is more famous for its pyramids, but Sudan has more pyramids than Egypt.
+Host: Thanks, Joe. We have two winners today. Congratulations, Namjun and Sara!`
+  ]
+}
+];
+
+const app = document.getElementById('app');
+let currentUtterance = null;
+
+function speak(text, onEnd){
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = 0.88;
+  u.pitch = 1.05;
+  if(onEnd) u.onend = onEnd;
+  currentUtterance = u;
+  window.speechSynthesis.speak(u);
+}
+
+function renderMenu(){
+  window.speechSynthesis.cancel();
+  let html = '';
+  UNITS.forEach(u=>{
+    const dayNums = Object.keys(u.days).map(Number).sort((a,b)=>a-b);
+    html += `<div class="unit-card">
+      <div class="unit-head">
+        <div>
+          <p class="unit-title">${u.title}</p>
+          <p class="unit-sub">${u.sub}</p>
+        </div>
+        <button class="full-btn" onclick="renderFull(${u.num})">📖 전체 읽기</button>
+      </div>
+      <div class="day-grid">
+        ${dayNums.map(d=>`<button class="day-btn c${u.color}" onclick="renderDay(${u.num},${d})">Day ${d}</button>`).join('')}
+      </div>
+    </div>`;
+  });
+  app.innerHTML = html;
+}
+
+function renderDay(unitNum, dayNum){
+  window.speechSynthesis.cancel();
+  const unit = UNITS.find(u=>u.num===unitNum);
+  const sentences = unit.days[dayNum];
+  let html = `
+    <div class="top-bar">
+      <button class="back-btn" onclick="renderMenu()">◀ 목록</button>
+      <h2 class="view-title">${unit.title} · Day ${dayNum}</h2>
+    </div>
+    <p class="hint">🔊 문장을 누르면 발음이 나와요 · 한 번 더 누르면 뜻이 보여요</p>
+  `;
+  sentences.forEach((pair, i)=>{
+    html += `<div class="sentence-card" id="s${i}" onclick="handleSentenceClick(${i})">
+      <div class="sentence-row">
+        <div class="speaker">🔊</div>
+        <div class="en-text">${pair[0]}</div>
+      </div>
+      <div class="kr-text" id="k${i}">${pair[1]}</div>
+    </div>`;
+  });
+  app.innerHTML = html;
+  window._daySentences = sentences;
+  window._dayState = {}; // tracks whether translation shown per index
+}
+
+function handleSentenceClick(i){
+  const card = document.getElementById('s'+i);
+  const kr = document.getElementById('k'+i);
+  const text = window._daySentences[i][0];
+  const alreadyShown = kr.classList.contains('show');
+
+  document.querySelectorAll('.sentence-card').forEach(c=>c.classList.remove('playing'));
+  card.classList.add('playing');
+
+  if(!alreadyShown){
+    speak(text);
+    kr.classList.add('show');
+  } else {
+    speak(text);
+  }
+}
+
+function renderFull(unitNum){
+  window.speechSynthesis.cancel();
+  const unit = UNITS.find(u=>u.num===unitNum);
+  let html = `
+    <div class="top-bar">
+      <button class="back-btn" onclick="renderMenu()">◀ 목록</button>
+      <h2 class="view-title">${unit.title} · 전체 지문</h2>
+    </div>
+    <p class="hint">▶️ 버튼을 누르면 그 문단을 들을 수 있어요</p>
+  `;
+  unit.full.forEach((para, i)=>{
+    html += `<div class="para-card">
+      <div class="para-top">
+        <button class="play-btn" onclick="playPara(this, ${unitNum}, ${i})">▶</button>
+        <strong>문단 ${i+1}</strong>
+      </div>
+      <div class="para-text">${para}</div>
+    </div>`;
+  });
+  app.innerHTML = html;
+}
+
+function playPara(btn, unitNum, idx){
+  const unit = UNITS.find(u=>u.num===unitNum);
+  const text = unit.full[idx];
+  document.querySelectorAll('.play-btn').forEach(b=>b.innerHTML='▶');
+  btn.innerHTML = '⏸';
+  speak(text, ()=>{ btn.innerHTML='▶'; });
+}
+
+renderMenu();
+</script>
+</body>
+</html>
