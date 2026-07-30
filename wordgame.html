@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>중1 영단어 게임</title>
+<title>🦁Leo's English Wordgame</title>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -407,7 +407,7 @@
 </head>
 <body>
 <div class="app">
-  <h1>🌈 중1 영단어 게임 🌈</h1>
+  <h1>🦁Leo's English Wordgame</h1>
 
   <div id="loginScreen">
     <div class="loginbox">
@@ -660,15 +660,27 @@ function stateKey(){ return `game-state:${currentName}`; }
 function wordbookKey(){ return `wordbook:${currentName}`; }
 
 // window.storage가 아직 연결되기 전일 수 있으므로 잠시 기다렸다가 사용
-function waitForStorage(timeout=4000){
+function waitForStorage(timeout=8000){
   return new Promise((resolve)=>{
     const start = Date.now();
     (function check(){
       if(window.storage && typeof window.storage.get==='function'){ resolve(true); return; }
       if(Date.now()-start>timeout){ resolve(false); return; }
-      setTimeout(check, 100);
+      setTimeout(check, 150);
     })();
   });
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+// 저장소 호출을 몇 번 재시도해주는 헬퍼 (일시적인 연결 지연에 대비)
+async function withRetry(fn, attempts=4, delayMs=600){
+  let lastErr;
+  for(let i=0;i<attempts;i++){
+    try{ return await fn(); }
+    catch(e){ lastErr = e; if(i<attempts-1) await sleep(delayMs); }
+  }
+  throw lastErr;
 }
 
 // ---------------- 저장/불러오기 ----------------
@@ -680,29 +692,49 @@ async function loadAll(){
     storageWarning = true;
     return;
   }
-  storageWarning = false;
+  let ok = true;
   try{
-    const g = await window.storage.get(stateKey(), false);
+    const g = await withRetry(()=>window.storage.get(stateKey(), false));
     if(g && g.value){ state = JSON.parse(g.value); }
-  }catch(e){ /* 없으면 기본값 사용 */ }
+  }catch(e){ /* 처음 오는 이름이면 저장된 게 없어서 여기로 올 수 있음 - 정상 */ }
   try{
-    const b = await window.storage.get(wordbookKey(), false);
+    const b = await withRetry(()=>window.storage.get(wordbookKey(), false));
     if(b && b.value){ wordbook = JSON.parse(b.value); }
-  }catch(e){ /* 없으면 빈 배열 */ }
+  }catch(e){ /* 처음 오는 이름이면 저장된 게 없어서 여기로 올 수 있음 - 정상 */ }
+  storageWarning = false;
 }
 
 async function saveState(){
-  const ready = await waitForStorage();
-  if(!ready){ storageWarning = true; return; }
-  try{ await window.storage.set(stateKey(), JSON.stringify(state), false); storageWarning=false; }
-  catch(e){ console.error('상태 저장 실패', e); storageWarning = true; }
+  try{
+    await withRetry(()=>window.storage.set(stateKey(), JSON.stringify(state), false));
+    if(storageWarning){ storageWarning=false; render(); }
+  }catch(e){
+    console.error('상태 저장 실패', e);
+    storageWarning = true;
+    render();
+  }
 }
 async function saveWordbook(){
-  const ready = await waitForStorage();
-  if(!ready){ storageWarning = true; return; }
-  try{ await window.storage.set(wordbookKey(), JSON.stringify(wordbook), false); storageWarning=false; }
-  catch(e){ console.error('단어장 저장 실패', e); storageWarning = true; }
+  try{
+    await withRetry(()=>window.storage.set(wordbookKey(), JSON.stringify(wordbook), false));
+    if(storageWarning){ storageWarning=false; render(); }
+  }catch(e){
+    console.error('단어장 저장 실패', e);
+    storageWarning = true;
+    render();
+  }
 }
+
+// 저장이 실패했을 때, 연결이 회복되면 자동으로 다시 저장하고 경고를 없애준다
+setInterval(async ()=>{
+  if(!storageWarning || !currentName) return;
+  try{
+    await withRetry(()=>window.storage.set(stateKey(), JSON.stringify(state), false), 1);
+    await withRetry(()=>window.storage.set(wordbookKey(), JSON.stringify(wordbook), false), 1);
+    storageWarning = false;
+    render();
+  }catch(e){ /* 아직도 안 되면 다음에 다시 시도 */ }
+}, 4000);
 
 async function resetAll(){
   state = { coins:0, cards:[], wishCoupons:0 };
