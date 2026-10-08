@@ -1,0 +1,627 @@
+<title>Leo 한글</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap">
+<style>
+/* Layout: one narrow column like a notebook page. Tabs on top, player card, then settings. The answer shows on a 원고지 grid with ∨ marks for spacing. */
+:root{
+  --bg:#edf4ef; --surface:#ffffff; --fg:#13302a; --muted:#587066; --line:#c6d8cd; --grid:#a9cdb8; --soft:#e2eee7;
+  --accent:#1b7a59; --accent-fg:#ffffff; --pencil:#f5c433; --pencil-fg:#2b2300;
+  --f-display:'Jua','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --f-body:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1a17; --surface:#15251f; --fg:#e3efe8; --muted:#92aaa0; --line:#2a4037; --grid:#3f6252; --soft:#1d3029;
+    --accent:#4fc99c; --accent-fg:#06241a; --pencil:#f5c433; --pencil-fg:#2b2300; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1a17; --surface:#15251f; --fg:#e3efe8; --muted:#92aaa0; --line:#2a4037; --grid:#3f6252; --soft:#1d3029;
+  --accent:#4fc99c; --accent-fg:#06241a; --pencil:#f5c433; --pencil-fg:#2b2300; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55;padding-inline:16px;padding-block:20px 48px}
+.app{max-width:640px;margin:0 auto;display:grid;gap:14px}
+h1{font-family:var(--f-display);font-weight:400;font-size:1.7rem;margin:0;letter-spacing:.01em}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tab{min-height:50px;border-radius:14px;border:2px solid var(--line);background:var(--surface);font-family:var(--f-display);font-size:1.1rem}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+
+.voicebar{display:flex;align-items:center;gap:10px;min-width:0}
+.voicebar label{color:var(--muted);flex:none}
+select{min-width:0;flex:1;font:inherit;color:var(--fg);background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:8px 10px}
+.warn{background:var(--soft);border:2px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--fg);font-size:.95rem}
+
+.card{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:14px;min-width:0}
+.count{font-family:var(--f-display);font-size:1.15rem;color:var(--muted);text-align:center}
+.count b{font-weight:400;color:var(--fg);font-size:1.7rem}
+.paper{min-height:8.5rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:var(--bg);border-radius:12px;padding:12px}
+.hint{color:var(--muted);margin:0;font-size:.95rem;text-align:center}
+.grid{display:flex;flex-wrap:wrap;padding:0 1px 1px 0;justify-content:flex-start;width:100%}
+.cell{width:2.1rem;height:2.1rem;border:1px solid var(--grid);margin:0 -1px -1px 0;display:flex;align-items:center;justify-content:center;font-size:1.2rem;background:var(--surface)}
+.cell.sp{width:1rem;color:var(--muted);font-size:.8rem;align-items:flex-end;padding-bottom:2px;background:var(--bg)}
+
+.ctrl{display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:8px}
+.ctrl2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{min-height:52px;border-radius:14px;border:2px solid var(--line);background:var(--surface);font-family:var(--f-display);font-size:1.05rem;padding:0 12px}
+.btn.primary{background:var(--pencil);color:var(--pencil-fg);border-color:transparent;min-height:64px;font-size:1.3rem}
+.btn.accent{background:var(--accent);color:var(--accent-fg);border-color:transparent}
+.btn:disabled{opacity:.4;cursor:default}
+.status{min-height:1.5em;text-align:center;color:var(--muted);margin:0}
+.jump{display:flex;flex-wrap:wrap;gap:6px}
+.jump button{width:40px;height:40px;border-radius:10px;border:2px solid var(--line);background:var(--surface);font-family:var(--f-display)}
+.jump button[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+
+.field{display:grid;gap:8px}
+.fl{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-family:var(--f-display)}
+.fl output{color:var(--accent);font-variant-numeric:tabular-nums}
+input[type="range"]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:.95rem}
+.chips button[aria-pressed="true"]{background:var(--soft);border-color:var(--accent)}
+.seg{position:relative;display:grid;grid-template-columns:1fr 1fr;border:2px solid var(--line);border-radius:12px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:12px 8px;text-align:center;cursor:pointer;font-family:var(--f-display);font-size:1rem}
+.seg input:checked+label{background:var(--accent);color:var(--accent-fg)}
+.seg input:focus-visible+label{outline:3px solid var(--pencil);outline-offset:-3px}
+.inline{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.inline label{font-family:var(--f-display)}
+.inline select{flex:none;width:7rem}
+.check{display:flex;align-items:center;gap:10px;cursor:pointer}
+.check input{width:20px;height:20px;accent-color:var(--accent);flex:none}
+
+details.card summary{cursor:pointer;font-family:var(--f-display);font-size:1.1rem}
+textarea{width:100%;font:inherit;line-height:1.7;color:var(--fg);background:var(--bg);border:2px solid var(--line);border-radius:10px;padding:10px;resize:vertical;margin-top:12px}
+details.card[open] summary{margin-bottom:0}
+.tag{color:var(--muted);font-family:var(--f-body);font-size:.95rem;margin-left:6px}
+
+.plist{display:grid;gap:6px}
+.chunk{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:10px;border:2px solid transparent;background:var(--soft);font-size:1.1rem;line-height:1.6}
+.chunk.on{border-color:var(--accent);background:var(--surface)}
+.empty{color:var(--muted);text-align:center;padding:14px 0;margin:0}
+@media (prefers-reduced-motion: no-preference){.btn,.tab,.chunk{transition:background-color .15s,border-color .15s}}
+</style>
+
+<div class="app">
+  <header style="display:grid;gap:12px">
+    <h1>Leo 한글</h1>
+    <div class="tabs" role="tablist" aria-label="메뉴">
+      <button class="tab" role="tab" id="tabDict" aria-selected="true" aria-controls="panelDict">받아쓰기</button>
+      <button class="tab" role="tab" id="tabProb" aria-selected="false" aria-controls="panelProb">문제 읽어주기</button>
+    </div>
+  </header>
+
+  <div class="voicebar">
+    <label for="voice">목소리</label>
+    <select id="voice"><option value="">기본 한국어 음성</option></select>
+  </div>
+  <div class="warn" id="noVoice" hidden>이 기기에서 한국어 음성을 찾지 못했어요. 기기 설정에서 한국어 음성을 내려받으면 소리가 나요.</div>
+
+  <!-- 받아쓰기 -->
+  <section id="panelDict" role="tabpanel" aria-labelledby="tabDict" style="display:grid;gap:14px">
+    <div class="card">
+      <div class="count"><b id="dNow">1</b> / <span id="dTotal">10</span> 번</div>
+      <div class="paper" id="paper"></div>
+      <div class="ctrl">
+        <button class="btn" id="prevBtn">◀ 이전</button>
+        <button class="btn primary" id="playBtn">▶ 읽어주기</button>
+        <button class="btn" id="nextBtn">다음 ▶</button>
+      </div>
+      <div class="ctrl2">
+        <button class="btn" id="slowBtn">천천히 끊어서</button>
+        <button class="btn" id="revealBtn">정답 보기</button>
+      </div>
+      <p class="status" id="dStatus" aria-live="polite"></p>
+      <div class="jump" id="jump" aria-label="문장 번호"></div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <div class="fl"><span>읽는 속도</span><output id="dRateOut">0.80배</output></div>
+        <input type="range" id="dRate" min="0.5" max="1.2" step="0.05" value="0.8" aria-label="읽는 속도">
+        <div class="chips" id="dPresets">
+          <button type="button" data-r="0.55">아주 느리게</button>
+          <button type="button" data-r="0.75">느리게</button>
+          <button type="button" data-r="0.95">보통</button>
+        </div>
+      </div>
+      <div class="field">
+        <div class="fl"><span>읽는 방식</span></div>
+        <div class="seg">
+          <input type="radio" name="dMode" id="mNat" value="nat" checked><label for="mNat">자연스럽게</label>
+          <input type="radio" name="dMode" id="mChunk" value="chunk"><label for="mChunk">띄어쓰기마다 끊어서</label>
+        </div>
+      </div>
+      <div class="field" id="pauseField" hidden>
+        <div class="fl"><span>끊어 읽는 쉬는 시간</span><output id="dPauseOut">0.8초</output></div>
+        <input type="range" id="dPause" min="0.2" max="2" step="0.1" value="0.8" aria-label="끊어 읽는 쉬는 시간">
+      </div>
+      <div class="inline">
+        <label for="dRepeat">반복해서 읽기</label>
+        <select id="dRepeat"><option value="1">1번</option><option value="2">2번</option><option value="3">3번</option></select>
+      </div>
+      <label class="check"><input type="checkbox" id="dAnnounce" checked> 문장 번호 먼저 읽기</label>
+      <label class="check"><input type="checkbox" id="dAutoPlay" checked> 문장을 넘기면 바로 읽기</label>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <div class="fl"><span>쓰는 시간</span><output id="dWaitOut">10초</output></div>
+        <input type="range" id="dWait" min="3" max="30" step="1" value="10" aria-label="쓰는 시간">
+      </div>
+      <button class="btn accent" id="autoBtn">자동으로 불러주기</button>
+      <p class="hint">지금 문장부터 한 문장씩 읽고, 쓰는 시간만큼 기다린 뒤 다음 문장으로 넘어가요.</p>
+    </div>
+
+    <details class="card" id="editor">
+      <summary>문장 입력하기 <span class="tag" id="dTag"></span></summary>
+      <textarea id="dText" rows="11" spellcheck="false" aria-label="받아쓰기 문장"></textarea>
+      <p class="hint" style="text-align:left;margin-top:10px">한 줄에 한 문장씩 넣어 주세요. 띄어쓰기는 쓴 그대로 읽어줘요.</p>
+    </details>
+  </section>
+
+  <!-- 문제 읽어주기 -->
+  <section id="panelProb" role="tabpanel" aria-labelledby="tabProb" style="display:none;gap:14px">
+    <details class="card" id="pEditor" open>
+      <summary>문제 입력하기</summary>
+      <textarea id="pText" rows="7" spellcheck="false" aria-label="읽어줄 문제"></textarea>
+      <p class="hint" style="text-align:left;margin-top:10px">문제를 붙여 넣으면 한 문장씩 나누어 읽어줘요.</p>
+    </details>
+
+    <div class="card">
+      <div class="ctrl2">
+        <button class="btn primary" id="pPlay">▶ 읽어주기</button>
+        <button class="btn" id="pRestart">처음부터</button>
+      </div>
+      <p class="status" id="pStatus" aria-live="polite"></p>
+      <div class="plist" id="pList"></div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <div class="fl"><span>읽는 속도</span><output id="pRateOut">0.90배</output></div>
+        <input type="range" id="pRate" min="0.5" max="1.4" step="0.05" value="0.9" aria-label="읽는 속도">
+        <div class="chips" id="pPresets">
+          <button type="button" data-r="0.6">느리게</button>
+          <button type="button" data-r="0.9">보통</button>
+          <button type="button" data-r="1.15">빠르게</button>
+        </div>
+      </div>
+      <div class="inline">
+        <label for="pRepeat">반복해서 읽기</label>
+        <select id="pRepeat"><option value="1">1번</option><option value="2">2번</option><option value="3">3번</option></select>
+      </div>
+      <label class="check"><input type="checkbox" id="pMath" checked> 수식 기호도 읽기 (＋ 더하기, □ 네모 …)</label>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var synth = ('speechSynthesis' in window) ? window.speechSynthesis : null;
+
+  var SAMPLE_DICT = [
+    '우리 가족은 주말마다 공원에 갑니다.',
+    '할머니께서 맛있는 떡볶이를 만들어 주셨어요.',
+    '비가 오는 날에는 우산을 챙겨야 해요.',
+    '동생과 함께 책을 읽을 수 있어서 좋아요.',
+    '오늘은 학교에서 친구들과 줄넘기를 했습니다.',
+    '하늘이 맑아서 소풍을 가기로 했어요.',
+    '나는 매일 아침 일곱 시에 일어납니다.',
+    '꽃이 활짝 피어서 정말 예뻤어요.',
+    '선생님께서 숙제를 다 했는지 물어보셨어요.',
+    '저녁에는 아버지와 같이 자전거를 탔습니다.'
+  ].join('\n');
+  var SAMPLE_PROB = '연필 12자루를 4명이 똑같이 나누어 가지려고 합니다. 한 명이 몇 자루씩 가지게 됩니까?\n식: 12 ÷ 4 = □\n답: □ 자루';
+
+  var store = {};
+  try { store = JSON.parse(localStorage.getItem('leo-hangul') || '{}') || {}; } catch (e) { store = {}; }
+  function save(){ try { localStorage.setItem('leo-hangul', JSON.stringify(store)); } catch (e) {} }
+
+  /* ---------- speech engine ---------- */
+  var runId = 0;
+  var sleepers = new Set();
+  var voices = [];
+
+  function cancelAll(){
+    var was = !!(synth && (synth.speaking || synth.pending));
+    runId++;
+    if (synth) synth.cancel();
+    sleepers.forEach(function(f){ f(); });
+    sleepers.clear();
+    return was;
+  }
+  function sleep(ms, tok){
+    return new Promise(function(res){
+      if (tok !== runId) { res(); return; }
+      var t = setTimeout(done, ms);
+      function done(){ clearTimeout(t); sleepers.delete(done); res(); }
+      sleepers.add(done);
+    });
+  }
+  function pickVoice(){
+    var name = $('voice').value;
+    if (!name) return null;
+    for (var i = 0; i < voices.length; i++) if (voices[i].name === name) return voices[i];
+    return null;
+  }
+  function say(text, rate, tok){
+    return new Promise(function(res){
+      if (!synth || tok !== runId || !text) { res(); return; }
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ko-KR';
+      u.rate = rate;
+      var v = pickVoice();
+      if (v) u.voice = v;
+      var fin = false, guard;
+      function done(){ if (fin) return; fin = true; clearTimeout(guard); res(); }
+      u.onend = done; u.onerror = done;
+      guard = setTimeout(done, 30000 + text.length * 400);
+      synth.speak(u);
+    });
+  }
+  function loadVoices(){
+    if (!synth) return;
+    var all = synth.getVoices() || [];
+    voices = all.filter(function(v){ return /^ko/i.test(v.lang) || /korean|한국/i.test(v.name); });
+    var sel = $('voice');
+    var cur = sel.value || store.voice || '';
+    sel.replaceChildren();
+    var d = document.createElement('option'); d.value = ''; d.textContent = '기본 한국어 음성'; sel.appendChild(d);
+    voices.forEach(function(v){
+      var o = document.createElement('option'); o.value = v.name; o.textContent = v.name; sel.appendChild(o);
+    });
+    sel.value = cur;
+    if (sel.value !== cur) sel.value = '';
+    $('noVoice').hidden = voices.length > 0 || all.length === 0;
+  }
+  if (synth) {
+    loadVoices();
+    if (synth.addEventListener) synth.addEventListener('voiceschanged', loadVoices);
+  } else {
+    $('noVoice').hidden = false;
+    $('noVoice').textContent = '이 브라우저는 읽어주기 기능을 지원하지 않아요. 크롬이나 사파리에서 열어 주세요.';
+  }
+  $('voice').addEventListener('change', function(){ store.voice = $('voice').value; save(); });
+
+  /* ---------- tabs ---------- */
+  function showTab(which){
+    var dict = which === 'dict';
+    $('tabDict').setAttribute('aria-selected', dict ? 'true' : 'false');
+    $('tabProb').setAttribute('aria-selected', dict ? 'false' : 'true');
+    $('panelDict').style.display = dict ? 'grid' : 'none';
+    $('panelProb').style.display = dict ? 'none' : 'grid';
+    stopAll();
+  }
+  $('tabDict').addEventListener('click', function(){ showTab('dict'); });
+  $('tabProb').addEventListener('click', function(){ showTab('prob'); });
+  function stopAll(){
+    cancelAll();
+    dMode = 'idle'; setDStatus('');
+    if (pMode === 'playing') pMode = 'paused';
+    setPStatus('');
+    renderDict(); renderPlay();
+  }
+
+  /* ---------- helpers ---------- */
+  function fmtRate(v){ return Number(v).toFixed(2) + '배'; }
+  function markPresets(box, val){
+    box.querySelectorAll('button').forEach(function(b){
+      b.setAttribute('aria-pressed', Math.abs(parseFloat(b.dataset.r) - val) < 0.01 ? 'true' : 'false');
+    });
+  }
+
+  /* ---------- 받아쓰기 ---------- */
+  var sentences = [], idx = 0, revealed = false, dMode = 'idle';
+
+  function setDStatus(t){ $('dStatus').textContent = t; }
+  function dRate(){ return parseFloat($('dRate').value); }
+  function dChunk(){ return $('mChunk').checked; }
+
+  function parseSentences(){
+    sentences = $('dText').value.split(/\n/).map(function(s){ return s.trim(); }).filter(Boolean);
+    if (idx > sentences.length - 1) idx = Math.max(0, sentences.length - 1);
+    $('dTag').textContent = sentences.length + '문장';
+  }
+
+  function renderPaper(){
+    var p = $('paper');
+    p.replaceChildren();
+    var s = sentences[idx] || '';
+    var h;
+    if (!s) {
+      h = document.createElement('p'); h.className = 'hint'; h.textContent = '아래 "문장 입력하기"에서 문장을 넣어 주세요.'; p.appendChild(h); return;
+    }
+    if (!revealed) {
+      h = document.createElement('p'); h.className = 'hint'; h.textContent = '듣고 공책에 써 보세요'; p.appendChild(h); return;
+    }
+    var g = document.createElement('div'); g.className = 'grid';
+    for (var ch of s) {
+      var c = document.createElement('span');
+      if (/\s/.test(ch)) { c.className = 'cell sp'; c.textContent = '∨'; }
+      else { c.className = 'cell'; c.textContent = ch; }
+      g.appendChild(c);
+    }
+    p.appendChild(g);
+    var n = document.createElement('p'); n.className = 'hint'; n.textContent = '∨ 는 띄어 쓰는 곳이에요'; p.appendChild(n);
+  }
+
+  function renderDict(){
+    $('dNow').textContent = sentences.length ? (idx + 1) : 0;
+    $('dTotal').textContent = sentences.length;
+    renderPaper();
+    $('prevBtn').disabled = idx <= 0;
+    $('nextBtn').disabled = idx >= sentences.length - 1;
+    $('playBtn').disabled = !sentences.length;
+    $('slowBtn').disabled = !sentences.length;
+    $('autoBtn').disabled = !sentences.length;
+    $('playBtn').textContent = dMode === 'playing' ? '■ 멈춤' : '▶ 읽어주기';
+    $('autoBtn').textContent = dMode === 'auto' ? '■ 자동 멈추기' : '자동으로 불러주기';
+    $('revealBtn').textContent = revealed ? '정답 가리기' : '정답 보기';
+    var j = $('jump'); j.replaceChildren();
+    sentences.forEach(function(_, i){
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = i + 1;
+      b.setAttribute('aria-label', (i + 1) + '번 문장');
+      if (i === idx) b.setAttribute('aria-current', 'true');
+      b.addEventListener('click', function(){ goTo(i); });
+      j.appendChild(b);
+    });
+  }
+
+  async function playSentence(i, o){
+    var text = sentences[i], tok = o.tok;
+    if (!text) return false;
+    if (o.announce) {
+      await say((i + 1) + '번', o.rate, tok);
+      if (tok !== runId) return false;
+      await sleep(500, tok);
+    }
+    for (var r = 0; r < o.repeats; r++) {
+      if (tok !== runId) return false;
+      if (o.chunk) {
+        var words = text.split(/\s+/).filter(Boolean);
+        for (var k = 0; k < words.length; k++) {
+          await say(words[k], o.rate, tok);
+          if (tok !== runId) return false;
+          if (k < words.length - 1) await sleep(o.pause * 1000, tok);
+        }
+      } else {
+        await say(text, o.rate, tok);
+      }
+      if (tok !== runId) return false;
+      if (r < o.repeats - 1) await sleep(1800, tok);
+    }
+    return tok === runId;
+  }
+
+  function opts(over){
+    var o = {
+      rate: dRate(),
+      chunk: dChunk(),
+      pause: parseFloat($('dPause').value),
+      repeats: parseInt($('dRepeat').value, 10) || 1,
+      announce: $('dAnnounce').checked
+    };
+    for (var k in over) o[k] = over[k];
+    return o;
+  }
+
+  async function startPlay(over){
+    var was = cancelAll();
+    var tok = runId;
+    dMode = 'playing'; setDStatus(''); renderDict();
+    if (was) await sleep(120, tok);
+    if (tok !== runId) return;
+    var o = opts(over); o.tok = tok;
+    await playSentence(idx, o);
+    if (tok === runId) { dMode = 'idle'; renderDict(); }
+  }
+
+  async function autoRun(){
+    var was = cancelAll();
+    var tok = runId;
+    dMode = 'auto'; renderDict();
+    if (was) await sleep(120, tok);
+    var wait = parseInt($('dWait').value, 10) || 10;
+    for (var i = idx; i < sentences.length; i++) {
+      if (tok !== runId) return;
+      idx = i; revealed = false; setDStatus(''); renderDict();
+      var o = opts({ announce: true }); o.tok = tok;
+      var ok = await playSentence(i, o);
+      if (!ok) return;
+      for (var s = wait; s > 0; s--) {
+        setDStatus('쓰는 시간 ' + s + '초');
+        await sleep(1000, tok);
+        if (tok !== runId) return;
+      }
+    }
+    if (tok === runId) { dMode = 'idle'; setDStatus('끝났어요. 정답을 확인해 보세요.'); renderDict(); }
+  }
+
+  function goTo(i){
+    cancelAll(); dMode = 'idle'; setDStatus('');
+    idx = Math.max(0, Math.min(sentences.length - 1, i));
+    revealed = false;
+    renderDict();
+    if ($('dAutoPlay').checked) startPlay();
+  }
+
+  $('playBtn').addEventListener('click', function(){
+    if (dMode === 'playing') { cancelAll(); dMode = 'idle'; renderDict(); } else startPlay();
+  });
+  $('slowBtn').addEventListener('click', function(){
+    startPlay({ chunk: true, rate: Math.min(dRate(), 0.65), repeats: 1, announce: false });
+  });
+  $('autoBtn').addEventListener('click', function(){
+    if (dMode === 'auto') { cancelAll(); dMode = 'idle'; setDStatus(''); renderDict(); } else autoRun();
+  });
+  $('prevBtn').addEventListener('click', function(){ goTo(idx - 1); });
+  $('nextBtn').addEventListener('click', function(){ goTo(idx + 1); });
+  $('revealBtn').addEventListener('click', function(){ revealed = !revealed; renderDict(); });
+
+  $('dRate').addEventListener('input', function(){
+    $('dRateOut').textContent = fmtRate(dRate()); markPresets($('dPresets'), dRate());
+    store.dRate = dRate(); save();
+  });
+  $('dPresets').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    $('dRate').value = b.dataset.r; $('dRate').dispatchEvent(new Event('input'));
+  });
+  function syncMode(){
+    $('pauseField').hidden = !dChunk();
+    store.dChunk = dChunk(); save();
+  }
+  $('mNat').addEventListener('change', syncMode);
+  $('mChunk').addEventListener('change', syncMode);
+  $('dPause').addEventListener('input', function(){
+    $('dPauseOut').textContent = parseFloat($('dPause').value).toFixed(1) + '초';
+    store.dPause = $('dPause').value; save();
+  });
+  $('dWait').addEventListener('input', function(){
+    $('dWaitOut').textContent = $('dWait').value + '초';
+    store.dWait = $('dWait').value; save();
+  });
+  $('dRepeat').addEventListener('change', function(){ store.dRepeat = $('dRepeat').value; save(); });
+  $('dAnnounce').addEventListener('change', function(){ store.dAnnounce = $('dAnnounce').checked; save(); });
+  $('dAutoPlay').addEventListener('change', function(){ store.dAutoPlay = $('dAutoPlay').checked; save(); });
+
+  var editTimer;
+  $('dText').addEventListener('input', function(){
+    clearTimeout(editTimer);
+    editTimer = setTimeout(function(){
+      parseSentences(); revealed = false; renderDict();
+      store.dText = $('dText').value; save();
+    }, 250);
+  });
+
+  /* ---------- 문제 읽어주기 ---------- */
+  var chunks = [], pIdx = 0, pMode = 'idle';
+
+  function setPStatus(t){ $('pStatus').textContent = t; }
+  function pRate(){ return parseFloat($('pRate').value); }
+
+  function toSpoken(t){
+    if (!$('pMath').checked) return t;
+    return t
+      .replace(/(\d)\s*[-−–]\s*(?=[\d□▢◻])/g, '$1 빼기 ')
+      .replace(/(\d)\s*[xX]\s*(?=\d)/g, '$1 곱하기 ')
+      .replace(/[□▢◻]/g, ' 네모 ')
+      .replace(/\(\s*\)/g, ' 괄호 ')
+      .replace(/÷/g, ' 나누기 ')
+      .replace(/[×✕]/g, ' 곱하기 ')
+      .replace(/\+/g, ' 더하기 ')
+      .replace(/=/g, ' 는 ')
+      .replace(/%/g, ' 퍼센트')
+      .replace(/\s+/g, ' ').trim();
+  }
+
+  function buildChunks(){
+    var lines = $('pText').value.split(/\n+/).map(function(s){ return s.trim(); }).filter(Boolean);
+    chunks = [];
+    lines.forEach(function(l){
+      var parts;
+      try { parts = l.split(/(?<=[.?!])\s+/); } catch (e) { parts = [l]; }
+      parts.forEach(function(p){ p = p.trim(); if (p) chunks.push(p); });
+    });
+    if (pIdx > chunks.length - 1) pIdx = 0;
+  }
+
+  function renderPlay(){
+    var list = $('pList'); list.replaceChildren();
+    if (!chunks.length) {
+      var e = document.createElement('p'); e.className = 'empty'; e.textContent = '위에 문제를 넣으면 여기에 나타나요.'; list.appendChild(e);
+    }
+    chunks.forEach(function(c, i){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'chunk' + (i === pIdx && pMode !== 'idle' ? ' on' : '');
+      b.textContent = c;
+      b.addEventListener('click', function(){ startProblem(i); });
+      list.appendChild(b);
+    });
+    $('pPlay').textContent = pMode === 'playing' ? '⏸ 멈춤' : (pMode === 'paused' ? '▶ 이어서 듣기' : '▶ 읽어주기');
+    $('pPlay').disabled = !chunks.length;
+    $('pRestart').disabled = !chunks.length;
+    var on = list.querySelector('.chunk.on');
+    if (on && on.scrollIntoView) { try { on.scrollIntoView({ block: 'nearest' }); } catch (e2) {} }
+  }
+
+  async function startProblem(from){
+    var was = cancelAll();
+    var tok = runId;
+    pMode = 'playing'; pIdx = from; setPStatus(''); renderPlay();
+    if (was) await sleep(120, tok);
+    var repeats = parseInt($('pRepeat').value, 10) || 1;
+    var rate = pRate();
+    var start = from;
+    for (var r = 0; r < repeats; r++) {
+      for (var i = start; i < chunks.length; i++) {
+        if (tok !== runId) return;
+        pIdx = i; renderPlay();
+        await say(toSpoken(chunks[i]), rate, tok);
+        if (tok !== runId) return;
+        await sleep(450, tok);
+      }
+      start = 0;
+      if (r < repeats - 1) {
+        setPStatus((r + 2) + '번째 읽는 중');
+        await sleep(1800, tok);
+      }
+    }
+    if (tok === runId) { pMode = 'idle'; pIdx = 0; setPStatus(''); renderPlay(); }
+  }
+
+  $('pPlay').addEventListener('click', function(){
+    if (pMode === 'playing') { cancelAll(); pMode = 'paused'; renderPlay(); }
+    else startProblem(pMode === 'paused' ? pIdx : 0);
+  });
+  $('pRestart').addEventListener('click', function(){ startProblem(0); });
+  $('pRate').addEventListener('input', function(){
+    $('pRateOut').textContent = fmtRate(pRate()); markPresets($('pPresets'), pRate());
+    store.pRate = pRate(); save();
+  });
+  $('pPresets').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    $('pRate').value = b.dataset.r; $('pRate').dispatchEvent(new Event('input'));
+  });
+  $('pRepeat').addEventListener('change', function(){ store.pRepeat = $('pRepeat').value; save(); });
+  $('pMath').addEventListener('change', function(){ store.pMath = $('pMath').checked; save(); });
+  var pTimer;
+  $('pText').addEventListener('input', function(){
+    clearTimeout(pTimer);
+    pTimer = setTimeout(function(){
+      cancelAll(); pMode = 'idle'; pIdx = 0; setPStatus('');
+      buildChunks(); renderPlay();
+      store.pText = $('pText').value; save();
+    }, 250);
+  });
+
+  /* ---------- init ---------- */
+  $('dText').value = store.dText != null ? store.dText : SAMPLE_DICT;
+  $('pText').value = store.pText != null ? store.pText : SAMPLE_PROB;
+  if (store.dRate) $('dRate').value = store.dRate;
+  if (store.dPause) $('dPause').value = store.dPause;
+  if (store.dWait) $('dWait').value = store.dWait;
+  if (store.dRepeat) $('dRepeat').value = store.dRepeat;
+  if (store.dAnnounce === false) $('dAnnounce').checked = false;
+  if (store.dAutoPlay === false) $('dAutoPlay').checked = false;
+  if (store.dChunk) $('mChunk').checked = true;
+  if (store.pRate) $('pRate').value = store.pRate;
+  if (store.pRepeat) $('pRepeat').value = store.pRepeat;
+  if (store.pMath === false) $('pMath').checked = false;
+
+  $('dRateOut').textContent = fmtRate(dRate()); markPresets($('dPresets'), dRate());
+  $('dPauseOut').textContent = parseFloat($('dPause').value).toFixed(1) + '초';
+  $('dWaitOut').textContent = $('dWait').value + '초';
+  $('pRateOut').textContent = fmtRate(pRate()); markPresets($('pPresets'), pRate());
+  $('pauseField').hidden = !dChunk();
+
+  parseSentences(); renderDict();
+  buildChunks(); renderPlay();
+})();
+</script>
